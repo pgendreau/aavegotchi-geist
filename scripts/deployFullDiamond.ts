@@ -494,137 +494,137 @@ export async function deployFullDiamond() {
     );
   }
 
-  // console.log("Upload SVGs");
+  console.log("Upload SVGs");
 
-  // const { eyeShapeSvgs } = require("../svgs/eyeShapes.js");
-  // const collateralsSvgs = [
-  //   '<g class="gotchi-collateral"><path d="M36 15v-1h-1v-1h-1v-1h-4v1h-1v1h-1v1h-1v4h1v1h1v1h1v1h4v-1h1v-1h1v-1h1v-4h-1z" fill="#ac15f9"/><path d="M33 21h-3v1h4v-1h-1z" fill="#7e18f8"/><path d="M35 14v-1h-1v-1h-4v1h-1v1h-1v1h8v-1h-1z" fill="#fa34f3"/><path d="M36 15h-9v2h10v-2h-1z" fill="#cf15f9"/><path d="M35 19h-7v1h1v1h6v-1h1v-1h-1z" fill="#8f17f9"/></g>',
-  // ];
-  // const collateralsLeftSvgs = [
-  //   '<g class="gotchi-collateral"><path d="M23 15v-1h-2v7h1v-1h1v-1h1v-4z" fill="#7e18f8"/></g>',
-  // ];
-  // const collateralsRightSvgs = [
-  //   '<g class="gotchi-collateral"><path d="M41 14v1h-1v4h1v1h1v1h1v-7z" fill="#7e18f8"/></g>',
-  // ];
+  const { eyeShapeSvgs } = require("../svgs/eyeShapes.js");
+  const collateralsSvgs = [
+    '<g class="gotchi-collateral"><path d="M36 15v-1h-1v-1h-1v-1h-4v1h-1v1h-1v1h-1v4h1v1h1v1h1v1h4v-1h1v-1h1v-1h1v-4h-1z" fill="#ac15f9"/><path d="M33 21h-3v1h4v-1h-1z" fill="#7e18f8"/><path d="M35 14v-1h-1v-1h-4v1h-1v1h-1v1h8v-1h-1z" fill="#fa34f3"/><path d="M36 15h-9v2h10v-2h-1z" fill="#cf15f9"/><path d="M35 19h-7v1h1v1h6v-1h1v-1h-1z" fill="#8f17f9"/></g>',
+  ];
+  const collateralsLeftSvgs = [
+    '<g class="gotchi-collateral"><path d="M23 15v-1h-2v7h1v-1h1v-1h1v-4z" fill="#7e18f8"/></g>',
+  ];
+  const collateralsRightSvgs = [
+    '<g class="gotchi-collateral"><path d="M41 14v1h-1v4h1v1h1v1h1v-7z" fill="#7e18f8"/></g>',
+  ];
 
-  // console.log("uploading portal svgs");
-  // await uploadSvgs(svgFacet, openedPortals, "portal-open", ethers);
-  // await uploadSvgs(svgFacet, closedPortals, "portal-closed", ethers);
+  console.log("uploading portal svgs");
+  await uploadSvgs(svgFacet, openedPortals, "portal-open", ethers);
+  await uploadSvgs(svgFacet, closedPortals, "portal-closed", ethers);
 
-  // console.log("uploading aavegotchiSvgs");
-  // await uploadSvgs(svgFacet, aavegotchiSvgs, "aavegotchi", ethers);
-  // console.log("uploading collaterals");
-  // await uploadSvgs(svgFacet, collateralsSvgs, "collaterals", ethers);
-  // console.log("uploading eyeShapes");
-  // await uploadSvgs(svgFacet, eyeShapeSvgs, "eyeShapes", ethers);
-  // console.log("uploading aavegotchiSideSvgsLeft");
-  // await uploadSvgs(
-  //   svgFacet,
-  //   aavegotchiSideSvgs.left,
-  //   "aavegotchi-left",
-  //   ethers
-  // );
-  // console.log("uploading aavegotchiSideSvgsRight");
-  // await uploadSvgs(
-  //   svgFacet,
-  //   aavegotchiSideSvgs.right,
-  //   "aavegotchi-right",
-  //   ethers
-  // );
-  // console.log("uploading aavegotchiSideSvgsBack");
-  // await uploadSvgs(
-  //   svgFacet,
-  //   aavegotchiSideSvgs.back,
-  //   "aavegotchi-back",
-  //   ethers
-  // );
-  // console.log("uploading collateral-side svgs");
-  // await uploadSvgs(svgFacet, collateralsLeftSvgs, "collaterals-left", ethers);
-  // await uploadSvgs(svgFacet, collateralsRightSvgs, "collaterals-right", ethers);
-  // await uploadSvgs(svgFacet, [""], "collaterals-back", ethers);
-  // await uploadSvgs(svgFacet, eyeShapesLeftSvgs, "eyeShapes-left", ethers);
-  // await uploadSvgs(svgFacet, eyeShapesRightSvgs, "eyeShapes-right", ethers);
-  // await uploadSvgs(
-  //   svgFacet,
-  //   Array(eyeShapeSvgs.length).fill(""),
-  //   "eyeShapes-back",
-  //   ethers
-  // );
+  console.log("uploading aavegotchiSvgs");
+  await uploadSvgs(svgFacet, aavegotchiSvgs, "aavegotchi", ethers);
+  console.log("uploading collaterals");
+  await uploadSvgs(svgFacet, collateralsSvgs, "collaterals", ethers);
+  console.log("uploading eyeShapes");
+  await uploadSvgs(svgFacet, eyeShapeSvgs, "eyeShapes", ethers);
+  console.log("uploading aavegotchiSideSvgsLeft");
+  await uploadSvgs(
+    svgFacet,
+    aavegotchiSideSvgs.left,
+    "aavegotchi-left",
+    ethers
+  );
+  console.log("uploading aavegotchiSideSvgsRight");
+  await uploadSvgs(
+    svgFacet,
+    aavegotchiSideSvgs.right,
+    "aavegotchi-right",
+    ethers
+  );
+  console.log("uploading aavegotchiSideSvgsBack");
+  await uploadSvgs(
+    svgFacet,
+    aavegotchiSideSvgs.back,
+    "aavegotchi-back",
+    ethers
+  );
+  console.log("uploading collateral-side svgs");
+  await uploadSvgs(svgFacet, collateralsLeftSvgs, "collaterals-left", ethers);
+  await uploadSvgs(svgFacet, collateralsRightSvgs, "collaterals-right", ethers);
+  await uploadSvgs(svgFacet, [""], "collaterals-back", ethers);
+  await uploadSvgs(svgFacet, eyeShapesLeftSvgs, "eyeShapes-left", ethers);
+  await uploadSvgs(svgFacet, eyeShapesRightSvgs, "eyeShapes-right", ethers);
+  await uploadSvgs(
+    svgFacet,
+    Array(eyeShapeSvgs.length).fill(""),
+    "eyeShapes-back",
+    ethers
+  );
 
-  // const { sleeves, wearables } = getWearables();
+  const { sleeves, wearables } = getWearables();
 
-  // const svgsArray: string[] = wearables;
-  // const sleeveSvgsArray: SleeveObject[] = sleeves;
+  const svgsArray: string[] = wearables;
+  const sleeveSvgsArray: SleeveObject[] = sleeves;
 
-  // console.log("Uploading wearables");
-  // await uploadSvgs(svgFacet, svgsArray, "wearables", ethers);
-  // console.log("Uploading sleeves");
-  // await uploadSvgs(
-  //   svgFacet,
-  //   sleeveSvgsArray.map((value) => value.svg),
-  //   "sleeves",
-  //   ethers
-  // );
+  console.log("Uploading wearables");
+  await uploadSvgs(svgFacet, svgsArray, "wearables", ethers);
+  console.log("Uploading sleeves");
+  await uploadSvgs(
+    svgFacet,
+    sleeveSvgsArray.map((value) => value.svg),
+    "sleeves",
+    ethers
+  );
 
-  // //uploading sideviews
+  //uploading sideviews
 
-  // console.log("Uploading wearablesleft");
-  // await uploadSvgs(
-  //   svgFacet,
-  //   wearablesLeftSvgs as string[],
-  //   "wearables-left",
-  //   ethers
-  // );
-  // console.log("Uploading wearablesRight");
-  // await uploadSvgs(
-  //   svgFacet,
-  //   wearablesRightSvgs as string[],
-  //   "wearables-right",
-  //   ethers
-  // );
-  // console.log("Uploading wearablesBack");
-  // await uploadSvgs(
-  //   svgFacet,
-  //   wearablesBackSvgs as string[],
-  //   "wearables-back",
-  //   ethers
-  // );
-  // console.log("Uploading wearablesLeftSleeve");
-  // await uploadSvgs(svgFacet, wearablesLeftSleeveSvgs, "sleeves-left", ethers);
-  // console.log("Uploading wearablesRightSleeve");
-  // await uploadSvgs(svgFacet, wearablesRightSleeveSvgs, "sleeves-right", ethers);
-  // console.log("Uploading wearablesBackSleeve");
-  // await uploadSvgs(svgFacet, wearablesBackSleeveSvgs, "sleeves-back", ethers);
-  // console.log("Upload Done");
+  console.log("Uploading wearablesleft");
+  await uploadSvgs(
+    svgFacet,
+    wearablesLeftSvgs as string[],
+    "wearables-left",
+    ethers
+  );
+  console.log("Uploading wearablesRight");
+  await uploadSvgs(
+    svgFacet,
+    wearablesRightSvgs as string[],
+    "wearables-right",
+    ethers
+  );
+  console.log("Uploading wearablesBack");
+  await uploadSvgs(
+    svgFacet,
+    wearablesBackSvgs as string[],
+    "wearables-back",
+    ethers
+  );
+  console.log("Uploading wearablesLeftSleeve");
+  await uploadSvgs(svgFacet, wearablesLeftSleeveSvgs, "sleeves-left", ethers);
+  console.log("Uploading wearablesRightSleeve");
+  await uploadSvgs(svgFacet, wearablesRightSleeveSvgs, "sleeves-right", ethers);
+  console.log("Uploading wearablesBackSleeve");
+  await uploadSvgs(svgFacet, wearablesBackSleeveSvgs, "sleeves-back", ethers);
+  console.log("Upload Done");
 
-  // interface SleeveInput {
-  //   sleeveId: BigNumberish;
-  //   wearableId: BigNumberish;
-  // }
-  // let sleevesSvgId: number = 0; // TODO
-  // let sleevesInput: SleeveInput[] = [];
-  // for (const sleeve of sleeveSvgsArray) {
-  //   sleevesInput.push({
-  //     sleeveId: sleevesSvgId,
-  //     wearableId: sleeve.id,
-  //   });
-  //   sleevesSvgId++;
-  // }
+  interface SleeveInput {
+    sleeveId: BigNumberish;
+    wearableId: BigNumberish;
+  }
+  let sleevesSvgId: number = 0; // TODO
+  let sleevesInput: SleeveInput[] = [];
+  for (const sleeve of sleeveSvgsArray) {
+    sleevesInput.push({
+      sleeveId: sleevesSvgId,
+      wearableId: sleeve.id,
+    });
+    sleevesSvgId++;
+  }
 
-  // console.log("Associating sleeves svgs with body wearable svgs.");
-  // tx = await svgFacet.setSleeves(sleevesInput);
-  // receipt = await tx.wait();
-  // if (!receipt.status) {
-  //   throw Error(`Error:: ${tx.hash}`);
-  // }
-  // console.log("Sleeves associating gas used::" + strDisplay(receipt.gasUsed));
-  // totalGasUsed = totalGasUsed.add(receipt.gasUsed);
+  console.log("Associating sleeves svgs with body wearable svgs.");
+  tx = await svgFacet.setSleeves(sleevesInput);
+  receipt = await tx.wait();
+  if (!receipt.status) {
+    throw Error(`Error:: ${tx.hash}`);
+  }
+  console.log("Sleeves associating gas used::" + strDisplay(receipt.gasUsed));
+  totalGasUsed = totalGasUsed.add(receipt.gasUsed);
 
-  // await setForgeProperties(forgeDiamond.address);
-  // tx = await daoFacet.setForge(forgeDiamond.address, { gasLimit: gasLimit });
-  // receipt = await tx.wait();
-  // console.log("Forge diamond set:" + strDisplay(receipt.gasUsed));
-  // totalGasUsed = totalGasUsed.add(receipt.gasUsed);
+  await setForgeProperties(forgeDiamond.address);
+  tx = await daoFacet.setForge(forgeDiamond.address, { gasLimit: gasLimit });
+  receipt = await tx.wait();
+  console.log("Forge diamond set:" + strDisplay(receipt.gasUsed));
+  totalGasUsed = totalGasUsed.add(receipt.gasUsed);
 
   return {
     aavegotchiDiamond: aavegotchiDiamond,
