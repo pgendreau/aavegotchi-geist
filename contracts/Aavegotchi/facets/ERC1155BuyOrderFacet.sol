@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.1;
+pragma solidity ^0.8.4;
 
 import {LibBuyOrder} from "../libraries/LibBuyOrder.sol";
 import {LibERC1155Marketplace} from "../libraries/LibERC1155Marketplace.sol";
@@ -10,6 +10,7 @@ import {LibMeta} from "../../shared/libraries/LibMeta.sol";
 import {Modifiers, ERC1155BuyOrder} from "../libraries/LibAppStorage.sol";
 import {BaazaarSplit, LibSharedMarketplace, SplitAddresses} from "../libraries/LibSharedMarketplace.sol";
 import "../WearableDiamond/interfaces/IEventHandlerFacet.sol";
+import {LibCustomError} from "../libraries/LibCustomError.sol";
 
 contract ERC1155BuyOrderFacet is Modifiers {
     event ERC1155BuyOrderAdd(
@@ -50,7 +51,7 @@ contract ERC1155BuyOrderFacet is Modifiers {
         uint256 category = LibSharedMarketplace.getERC1155Category(_erc1155TokenAddress, _erc1155TokenId);
 
         // Transfer ETH
-        require(msg.value == cost, "ERC1155BuyOrder:GHST amount mismatch");
+        if (msg.value != cost) revert LibCustomError.GHSTAmountMismatch();
 
         // Place new buy order
         s.nextERC1155BuyOrderId++;

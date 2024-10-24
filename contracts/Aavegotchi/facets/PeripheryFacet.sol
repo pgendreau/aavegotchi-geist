@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.1;
+pragma solidity ^0.8.4;
 
 import {LibItems} from "../libraries/LibItems.sol";
 import {Modifiers} from "../libraries/LibAppStorage.sol";
@@ -10,11 +10,7 @@ import {LibDiamond} from "../../shared/libraries/LibDiamond.sol";
 contract PeripheryFacet is Modifiers {
     //WRITE
 
-    function peripherySetApprovalForAll(
-        address _operator,
-        bool _approved,
-        address _onBehalfOf
-    ) external onlyPeriphery {
+    function peripherySetApprovalForAll(address _operator, bool _approved, address _onBehalfOf) external onlyPeriphery {
         s.operators[_onBehalfOf][_operator] = _approved;
     }
 

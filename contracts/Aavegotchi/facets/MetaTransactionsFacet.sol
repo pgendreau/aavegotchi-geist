@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.1;
+pragma solidity ^0.8.4;
 
 import {AppStorage} from "../libraries/LibAppStorage.sol";
 
@@ -46,13 +46,7 @@ contract MetaTransactionsFacet {
         nonce_ = s.metaNonces[user];
     }
 
-    function verify(
-        address user,
-        MetaTransaction memory metaTx,
-        bytes32 sigR,
-        bytes32 sigS,
-        uint8 sigV
-    ) internal view returns (bool) {
+    function verify(address user, MetaTransaction memory metaTx, bytes32 sigR, bytes32 sigS, uint8 sigV) internal view returns (bool) {
         address signer = ecrecover(toTypedMessageHash(hashMetaTransaction(metaTx)), sigV, sigR, sigS);
         require(signer != address(0), "Invalid signature");
         return signer == user;

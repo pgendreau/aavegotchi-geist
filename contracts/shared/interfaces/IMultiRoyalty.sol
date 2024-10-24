@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.1;
+pragma solidity ^0.8.4;
 
 import "./IERC165.sol";
 
@@ -19,10 +19,10 @@ interface IMultiRoyalty is IERC165 {
     /// @param _salePrice - the sale price of the NFT asset specified by _tokenId
     /// @return receivers - address of who should be sent the royalty payment
     /// @return royaltyAmounts - the royalty payment amount for _salePrice
-    function multiRoyaltyInfo(uint256 _tokenId, uint256 _salePrice)
-        external
-        view
-        returns (address[] memory receivers, uint256[] memory royaltyAmounts);
+    function multiRoyaltyInfo(
+        uint256 _tokenId,
+        uint256 _salePrice
+    ) external view returns (address[] memory receivers, uint256[] memory royaltyAmounts);
 
     /// @notice Informs callers that this contract supports multi royalty standard
     /// @dev If `_registerInterface(_INTERFACE_ID)` is called

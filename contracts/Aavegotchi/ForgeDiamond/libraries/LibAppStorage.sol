@@ -1,4 +1,4 @@
-pragma solidity 0.8.1;
+pragma solidity ^0.8.4;
 
 import {ForgeLibDiamond} from "./ForgeLibDiamond.sol";
 import {LibMeta} from "../../../shared/libraries/LibMeta.sol";

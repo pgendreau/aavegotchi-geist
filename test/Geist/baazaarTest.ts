@@ -9,14 +9,12 @@ import {
   MarketplaceGetterFacet,
   ItemsFacet,
   DAOFacet,
-  WGHST,
 } from "../../typechain";
 
 import { deployFullDiamond } from "../../scripts/deployFullDiamond";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
-import { BigNumber, BigNumberish } from "ethers";
-import { deployWGHST } from "../../scripts/deployWGHST";
+import { BigNumber } from "ethers";
 
 describe("Baazaar Test", function () {
   let aavegotchiDiamond: Diamond;
@@ -153,7 +151,10 @@ describe("Baazaar Test", function () {
             value: "0",
           }
         )
-      ).to.be.revertedWith("ERC721MarketplaceFacet: Not enough GHST sent");
+      ).to.be.revertedWithCustomError(
+        erc721MarketplaceFacet,
+        "GHSTAmountMismatch"
+      );
     });
 
     it("should be able to purchase an erc721 listing", async () => {
@@ -227,7 +228,7 @@ describe("Baazaar Test", function () {
     it("should not be able to buy an erc1155 item from ShopFacet with insufficient GHST", async () => {
       await expect(
         shopFacet.purchaseItemsWithGhst(owner.address, [erc1155TokenId], [1])
-      ).to.be.revertedWith("ShopFacet: Insufficient GHST value");
+      ).to.be.revertedWithCustomError(shopFacet, "GHSTAmountMismatch");
     });
 
     it("should be able to buy an erc1155 item from ShopFacet", async () => {
@@ -294,7 +295,10 @@ describe("Baazaar Test", function () {
           listing.priceInWei,
           owner.address
         )
-      ).to.be.revertedWith("ERC1155Marketplace: Insufficient GHST sent");
+      ).to.be.revertedWithCustomError(
+        erc1155MarketplaceFacet,
+        "GHSTAmountMismatch"
+      );
     });
 
     it("should be able to purchase an erc1155 listing", async () => {
@@ -450,7 +454,10 @@ describe("Baazaar Test", function () {
           [false, false, false], // validationOptions
           { value: "0" }
         )
-      ).to.be.revertedWith("ERC721BuyOrder: Not enough GHST!");
+      ).to.be.revertedWithCustomError(
+        erc721BuyOrderFacet,
+        "GHSTAmountMismatch"
+      );
     });
 
     it("Should be able to create an offer", async function () {

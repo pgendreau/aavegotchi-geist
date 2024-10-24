@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.1;
+pragma solidity ^0.8.4;
 
 /******************************************************************************\
 * Author: Nick Mudge
@@ -9,12 +9,7 @@ pragma solidity 0.8.1;
 import {IERC20} from "../interfaces/IERC20.sol";
 
 library LibERC20 {
-    function transferFrom(
-        address _token,
-        address _from,
-        address _to,
-        uint256 _value
-    ) internal {
+    function transferFrom(address _token, address _from, address _to, uint256 _value) internal {
         uint256 size;
         assembly {
             size := extcodesize(_token)
@@ -24,11 +19,7 @@ library LibERC20 {
         handleReturn(success, result);
     }
 
-    function transfer(
-        address _token,
-        address _to,
-        uint256 _value
-    ) internal {
+    function transfer(address _token, address _to, uint256 _value) internal {
         uint256 size;
         assembly {
             size := extcodesize(_token)

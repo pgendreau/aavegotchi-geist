@@ -1,4 +1,4 @@
-pragma solidity 0.8.1;
+pragma solidity ^0.8.4;
 
 import {WearableLibDiamond} from "./WearableLibDiamond.sol";
 
@@ -12,11 +12,7 @@ library LibEventHandler {
 
     event URI(string value, uint256 indexed id);
 
-    function _receiveAndEmitApprovalEvent(
-        address account,
-        address operator,
-        bool approved
-    ) internal {
+    function _receiveAndEmitApprovalEvent(address account, address operator, bool approved) internal {
         emit ApprovalForAll(account, operator, approved);
     }
 
@@ -24,13 +20,7 @@ library LibEventHandler {
         emit URI(value, id);
     }
 
-    function _receiveAndEmitTransferSingleEvent(
-        address operator,
-        address from,
-        address to,
-        uint256 id,
-        uint256 value
-    ) internal {
+    function _receiveAndEmitTransferSingleEvent(address operator, address from, address to, uint256 id, uint256 value) internal {
         emit TransferSingle(operator, from, to, id, value);
     }
 

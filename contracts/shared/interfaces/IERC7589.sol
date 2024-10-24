@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CC0-1.0
 
-pragma solidity 0.8.1;
+pragma solidity ^0.8.4;
 
 /// @title ERC-7589 Semi-Fungible Token Roles
 /// @dev See https://eips.ethereum.org/EIPS/eip-7589

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.1;
+pragma solidity ^0.8.4;
 
 interface INFTBridge {
     function bridge(
@@ -13,10 +13,7 @@ interface INFTBridge {
         bytes calldata options_
     ) external payable;
 
-    function receiveInbound(
-        uint32 siblingChainSlug_,
-        bytes memory payload_
-    ) external payable;
+    function receiveInbound(uint32 siblingChainSlug_, bytes memory payload_) external payable;
 
     function retry(address connector_, bytes32 messageId_) external;
 }

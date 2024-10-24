@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.1;
+pragma solidity ^0.8.4;
 
 import "../libraries/LibAppStorage.sol";
 
@@ -7,7 +7,7 @@ import {LibMeta} from "../../../shared/libraries/LibMeta.sol";
 import {ILink} from "../../interfaces/ILink.sol";
 import {ForgeFacet} from "./ForgeFacet.sol";
 import {ForgeTokenFacet} from "./ForgeTokenFacet.sol";
-
+import {LibCustomError} from "../../libraries/LibCustomError.sol";
 contract ForgeVRFFacet is Modifiers {
     event VrfResponse(address user, uint256 randomNumber, bytes32 requestId, uint256 blockNumber);
     event GeodeWin(address user, uint256 itemId, uint256 geodeTokenId, bytes32 requestId, uint256 blockNumber);
@@ -70,7 +70,8 @@ contract ForgeVRFFacet is Modifiers {
     function openGeodes(uint256[] calldata _geodeTokenIds, uint256[] calldata _amountPerToken) external whenNotPaused onlyPolygon {
         require(_geodeTokenIds.length > 0, "ForgeVRFFacet: Cannot open 0 geodes");
         require(areGeodePrizesAvailable(), "ForgeVRFFacet: No prizes currently available");
-        require(_geodeTokenIds.length == _amountPerToken.length, "ForgeVRFFacet: mismatched arrays");
+
+        if (_geodeTokenIds.length != _amountPerToken.length) revert LibCustomError.ArrayLengthMismatch();
 
         address sender = LibMeta.msgSender();
         uint256 total;

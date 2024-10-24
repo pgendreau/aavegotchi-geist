@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.1;
+pragma solidity ^0.8.4;
 
 import {IERC1155} from "../../shared/interfaces/IERC1155.sol";
 import {IERC165} from "../../shared/interfaces/IERC165.sol";
@@ -305,7 +305,7 @@ contract ItemsRolesRegistryFacet is Modifiers, IERC7589 {
             "ItemsRolesRegistryFacet: token has an active role"
         );
 
-        if(_depositInfo.roleAssignment.grantee != _grantee) {
+        if (_depositInfo.roleAssignment.grantee != _grantee) {
             // if depositId is being delegated to a new user, we need to make sure that Aavegotchis not owned by the new user are using these Wearables
             _unequipAllDelegatedWearables(_depositId, _depositInfo.deposit.tokenId);
         }
@@ -350,7 +350,7 @@ contract ItemsRolesRegistryFacet is Modifiers, IERC7589 {
         uint256 _unequippedBalance;
         uint16[EQUIPPED_WEARABLE_SLOTS] memory _previousEquippedWearables = _aavegotchi.equippedWearables;
         uint256[EQUIPPED_WEARABLE_SLOTS] memory _previousEquippedDepositIds = _gotchiInfo.equippedDepositIds;
-        
+
         for (uint256 slot; slot < EQUIPPED_WEARABLE_SLOTS; slot++) {
             // if the item is not equipped in the slot or the deposit is not the same, continue
             if (_aavegotchi.equippedWearables[slot] != _tokenIdToUnequip || _gotchiInfo.equippedDepositIds[slot] != _depositId) continue;

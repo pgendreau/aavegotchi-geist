@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.1;
+pragma solidity ^0.8.4;
 
 import {AppStorage} from "../libraries/LibAppStorage.sol";
 import {LibStrings} from "../../shared/libraries/LibStrings.sol";
@@ -45,7 +45,6 @@ contract AavegotchiFacet {
         require(_index < s.tokenIds.length, "AavegotchiFacet: _index is greater than total supply.");
         tokenId_ = s.tokenIds[_index];
     }
-    
 
     /// @notice Count all NFTs assigned to an owner
     /// @dev NFTs assigned to the zero address are considered invalid, and this.
@@ -94,12 +93,7 @@ contract AavegotchiFacet {
     /// @param _to The new owner
     /// @param _tokenId The NFT to transfer
     /// @param _data Additional data with no specified format, sent in call to `_to`
-    function safeTransferFrom(
-        address _from,
-        address _to,
-        uint256 _tokenId,
-        bytes calldata _data
-    ) external {
+    function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes calldata _data) external {
         address sender = LibMeta.msgSender();
         internalTransferFrom(sender, _from, _to, _tokenId);
         LibERC721.checkOnERC721Received(sender, _from, _to, _tokenId, _data);
@@ -111,11 +105,7 @@ contract AavegotchiFacet {
     /// @param _from The current owner of the NFT
     /// @param _to The new owner
     /// @param _tokenId The NFT to transfer
-    function safeTransferFrom(
-        address _from,
-        address _to,
-        uint256 _tokenId
-    ) external {
+    function safeTransferFrom(address _from, address _to, uint256 _tokenId) external {
         address sender = LibMeta.msgSender();
         internalTransferFrom(sender, _from, _to, _tokenId);
         LibERC721.checkOnERC721Received(sender, _from, _to, _tokenId, "");
@@ -131,22 +121,13 @@ contract AavegotchiFacet {
     /// @param _from The current owner of the NFT
     /// @param _to The new owner
     /// @param _tokenId The NFT to transfer
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _tokenId
-    ) external {
+    function transferFrom(address _from, address _to, uint256 _tokenId) external {
         address sender = LibMeta.msgSender();
         internalTransferFrom(sender, _from, _to, _tokenId);
     }
 
     // This function is used by transfer functions
-    function internalTransferFrom(
-        address _sender,
-        address _from,
-        address _to,
-        uint256 _tokenId
-    ) internal {
+    function internalTransferFrom(address _sender, address _from, address _to, uint256 _tokenId) internal {
         require(_to != address(0), "ER721: Can't transfer to 0 address");
         address owner = s.aavegotchis[_tokenId].owner;
         require(owner != address(0), "ERC721: Invalid tokenId or can't be transferred");

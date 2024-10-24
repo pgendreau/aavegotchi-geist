@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.1;
+pragma solidity ^0.8.4;
 
 // From Open Zeppelin contracts: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Strings.sol
 
@@ -34,7 +34,4 @@ library LibStrings {
         }
         return string(abi.encodePacked(_str, buffer));
     }
-
-
-
 }

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.1;
+pragma solidity ^0.8.4;
 
 import {LibMeta} from "../../shared/libraries/LibMeta.sol";
 import {LibAppStorage, AppStorage, Whitelist} from "../libraries/LibAppStorage.sol";
@@ -68,11 +68,7 @@ library LibWhitelist {
         }
     }
 
-    function setWhitelistAccessRight(
-        uint32 _whitelistId,
-        uint256 _actionRight,
-        uint256 _accessRight
-    ) internal {
+    function setWhitelistAccessRight(uint32 _whitelistId, uint256 _actionRight, uint256 _accessRight) internal {
         require(_isAccessRightValid(_actionRight, _accessRight), "LibWhitelist: Invalid Rights");
         AppStorage storage s = LibAppStorage.diamondStorage();
         s.whitelistAccessRights[_whitelistId][_actionRight] = _accessRight;

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.1;
+pragma solidity ^0.8.4;
 
 import {LibAavegotchi} from "../libraries/LibAavegotchi.sol";
 import {IERC721} from "../../shared/interfaces/IERC721.sol";
@@ -11,6 +11,7 @@ import {LibERC721Marketplace, ERC721Listing} from "../libraries/LibERC721Marketp
 import {LibBuyOrder} from "../libraries/LibBuyOrder.sol";
 import {Modifiers, ListingListItem} from "../libraries/LibAppStorage.sol";
 import {BaazaarSplit, LibSharedMarketplace, SplitAddresses} from "../libraries/LibSharedMarketplace.sol";
+import {LibCustomError} from "../libraries/LibCustomError.sol";
 
 contract ERC721MarketplaceFacet is Modifiers {
     event ERC721ListingAdd(
@@ -275,7 +276,9 @@ contract ERC721MarketplaceFacet is Modifiers {
         address _recipient
     ) internal {
         ERC721Listing storage listing = s.erc721Listings[_listingId];
-        require(msg.value == _priceInWei, "ERC721MarketplaceFacet: GHST amount mismatch");
+
+        if (msg.value != _priceInWei) revert LibCustomError.GHSTAmountMismatch();
+
         require(listing.timePurchased == 0, "ERC721Marketplace: listing already sold");
         require(listing.cancelled == false, "ERC721Marketplace: listing cancelled");
         require(listing.timeCreated != 0, "ERC721Marketplace: listing not found");

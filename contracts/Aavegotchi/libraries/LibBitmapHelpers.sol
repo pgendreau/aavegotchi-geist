@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.1;
+pragma solidity ^0.8.4;
 
 library LibBitmapHelpers {
     function getValueInByte(uint8 index, uint256 bitmap) internal pure returns (uint8) {

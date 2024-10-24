@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.1;
+pragma solidity ^0.8.4;
 
 import {Modifiers, AppStorage, ItemType, Haunt} from "../libraries/LibAppStorage.sol";
 import {LibAavegotchi} from "../libraries/LibAavegotchi.sol";
@@ -9,6 +9,7 @@ import {LibERC1155} from "../../shared/libraries/LibERC1155.sol";
 import {LibItems} from "../libraries/LibItems.sol";
 import {LibMeta} from "../../shared/libraries/LibMeta.sol";
 import {LibERC1155Marketplace} from "../libraries/LibERC1155Marketplace.sol";
+import {LibCustomError} from "../libraries/LibCustomError.sol";
 
 import "../WearableDiamond/interfaces/IEventHandlerFacet.sol";
 
@@ -134,8 +135,7 @@ contract ShopFacet is Modifiers {
             totalPrice += quantity * itemType.ghstPrice;
             LibItems.addToOwner(_to, itemId, quantity);
         }
-
-        require(msg.value == totalPrice, "ShopFacet: GHST value mismatch");
+        if (msg.value != totalPrice) revert LibCustomError.GHSTAmountMismatch();
 
         emit PurchaseItemsWithGhst(sender, _to, _itemIds, _quantities, totalPrice);
         IEventHandlerFacet(s.wearableDiamond).emitTransferBatchEvent(sender, address(0), _to, _itemIds, _quantities);
