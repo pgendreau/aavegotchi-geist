@@ -212,10 +212,6 @@ library LibGotchiLending {
         // gas savings
         address lender = lending.lender;
 
-        if (lending.initialCost > 0) {
-            (bool success, ) = payable(lender).call{value: _initialCost}("");
-            require(success, "ETH transfer to lender failed");
-        }
         lending.borrower = _borrower;
         uint40 currentTime = uint40(block.timestamp);
         lending.timeAgreed = currentTime;
@@ -246,6 +242,11 @@ library LibGotchiLending {
             "LibGotchiLending: Borrower is over borrow limit for the limit set by whitelist owner"
         );
         whitelistBorrowerGotchiSet.add(_erc721TokenId);
+
+        if (lending.initialCost > 0) {
+            (bool success, ) = payable(lender).call{value: _initialCost}("");
+            require(success, "ETH transfer to lender failed");
+        }
 
         emit GotchiLendingExecute(_listingId);
         emit GotchiLendingExecuted(
