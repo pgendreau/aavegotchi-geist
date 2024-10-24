@@ -21,34 +21,17 @@ contract PolygonXGeistBridgeFacet is Modifiers {
         Aavegotchi memory _aavegotchi = s.aavegotchis[_tokenId];
         bytes memory _metadata = abi.encode(_aavegotchi);
         INFTBridge(s.gotchGeistBridge).bridge(_receiver, msg.sender, _tokenId, 1, _msgGasLimit, _connector, _metadata, new bytes(0));
-        if (_hasVault) { // this module should work when has vault
-            for (uint slot; slot < _aavegotchi.equippedWearables.length; slot++) {
-                uint wearableId = _aavegotchi.equippedWearables[slot];
-                if (wearableId != 0) {
-                    delete s.aavegotchis[_tokenId].equippedWearables[slot];
-                    LibItems.removeFromParent(address(this), _tokenId, wearableId, 1);
-                    LibItems.addToOwner(s.itemGeistBridge, wearableId, 1);
-                    IEventHandlerFacet(s.wearableDiamond).emitTransferSingleEvent(msg.sender, address(this), s.itemGeistBridge, wearableId, 1);
-                    emit LibERC1155.TransferFromParent(address(this), _tokenId, wearableId, 1);
-                }
-            }
-        }
     }
 
-    function setMetadata(uint _tokenId, bytes memory _metadata, bool isMint) external onlyGotchiGeistBridge {
+    function setMetadata(uint _tokenId, bytes memory _metadata) external onlyGotchiGeistBridge {
         Aavegotchi memory _aavegotchi = abi.decode(_metadata, (Aavegotchi));
         s.aavegotchis[_tokenId] = _aavegotchi;
 
         for (uint slot; slot < _aavegotchi.equippedWearables.length; slot++) {
             if (_aavegotchi.equippedWearables[slot] != 0) {
                 uint wearableId = _aavegotchi.equippedWearables[slot];
-                if (isMint) { // if bridge is controller, mint
-                    s.itemTypes[wearableId].totalQuantity += 1;
-                    IEventHandlerFacet(s.wearableDiamond).emitTransferSingleEvent(msg.sender, address(0), address(this), wearableId, 1);
-                } else { // if bridge is vault
-                    LibItems.removeFromOwner(s.itemGeistBridge, wearableId, 1);
-                    IEventHandlerFacet(s.wearableDiamond).emitTransferSingleEvent(msg.sender, s.itemGeistBridge, address(this), wearableId, 1);
-                }
+                s.itemTypes[wearableId].totalQuantity += 1;
+                IEventHandlerFacet(s.wearableDiamond).emitTransferSingleEvent(msg.sender, address(0), address(this), wearableId, 1);
                 LibItems.addToParent(address(this), _tokenId, wearableId, 1);
                 emit LibERC1155.TransferToParent(address(this), _tokenId, wearableId, 1);
             }
