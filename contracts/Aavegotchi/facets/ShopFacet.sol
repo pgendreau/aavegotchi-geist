@@ -38,7 +38,7 @@ contract ShopFacet is Modifiers {
     ///@dev Will throw if the max number of portals for the current haunt has been reached
     ///@param _to The destination of the minted portals
     ///@param _amount the amunt of portals to mint
-    function mintPortals(address _to, uint256 _amount) external onlyItemManager onlyPolygon {
+    function mintPortals(address _to, uint256 _amount) external onlyItemManager onlyPolygonOrTesting {
         uint256 currentHauntId = s.currentHauntId;
         Haunt storage haunt = s.haunts[currentHauntId];
         address sender = LibMeta.msgSender();
@@ -65,7 +65,7 @@ contract ShopFacet is Modifiers {
     // /@param _to Address to send the items once purchased
     // /@param _itemIds The identifiers of the items to be purchased
     // /@param _quantities The quantities of each item to be bought
-    function purchaseItemsWithGhst(address _to, uint256[] calldata _itemIds, uint256[] calldata _quantities) external payable onlyPolygon {
+    function purchaseItemsWithGhst(address _to, uint256[] calldata _itemIds, uint256[] calldata _quantities) external payable onlyPolygonOrTesting {
         address sender = LibMeta.msgSender();
         require(_itemIds.length == _quantities.length, "ShopFacet: _itemIds not same length as _quantities");
         uint256 totalPrice;

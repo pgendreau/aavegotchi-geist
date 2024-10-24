@@ -472,9 +472,15 @@ contract Modifiers {
         _;
     }
 
-    modifier onlyPolygon() {
+    modifier onlyPolygonOrTestingOrTesting() {
         // enabled for polygon only
         require(block.chainid == 137 || block.chainid == 31337, "LibAppStorage: Disabled function");
+        _;
+    }
+
+    modifier temporaryDisabled() {
+        //currently disabled but will be made available again in the future
+        require(false, "LibAppStorage: Temporary disabled");
         _;
     }
 }
