@@ -1,5 +1,7 @@
 # Welcome to the Aavegotchi Contracts!
 
+## Note: These contracts are only for the Aavegotchi Diamond deployed on Geist. For the original Polygon Diamond contracts, please visit [Aavegotchi Contracts](https://github.com/aavegotchi/aavegotchi-contracts).
+
 Aavegotchis are fully onchain NFTs, powered by the ERC721, ERC1155, and ERC998 standards. The contracts also implement the EIP-2535 Diamonds standard, which allows for modular upgradeability. 
 
 Aavegotchis are one of the world's first playable NFTs, with onchain attributes that can be increased by interacting with the NFT and the community. 
