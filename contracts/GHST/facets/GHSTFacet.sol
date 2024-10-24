@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.1;
 
 import {LibDiamond} from "../../shared/libraries/LibDiamond.sol";
 import {AppStorage} from "../libraries/LibAppStorage.sol";
@@ -66,7 +66,11 @@ contract GHSTFacet {
         contracts_ = s.approvedContracts;
     }
 
-    function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {
+    function transferFrom(
+        address _from,
+        address _to,
+        uint256 _value
+    ) public returns (bool success) {
         uint256 fromBalance = s.balances[_from];
         if (msg.sender == _from || s.approvedContractIndexes[msg.sender] > 0) {
             // pass

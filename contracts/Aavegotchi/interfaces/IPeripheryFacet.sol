@@ -1,4 +1,4 @@
-pragma solidity ^0.8.4;
+pragma solidity 0.8.1;
 
 interface IPeripheryFacet {
     //WRITE
@@ -7,7 +7,14 @@ interface IPeripheryFacet {
 
     function peripherySetBaseURI(string memory _value) external returns (uint256 _itemsLength);
 
-    function peripherySafeTransferFrom(address _operator, address _from, address _to, uint256 _id, uint256 _value, bytes calldata _data) external;
+    function peripherySafeTransferFrom(
+        address _operator,
+        address _from,
+        address _to,
+        uint256 _id,
+        uint256 _value,
+        bytes calldata _data
+    ) external;
 
     function peripherySafeBatchTransferFrom(
         address _operator,

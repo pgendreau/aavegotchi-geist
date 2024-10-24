@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.1;
 
 import {LibMeta} from "../../shared/libraries/LibMeta.sol";
 import {Modifiers, Whitelist} from "../libraries/LibAppStorage.sol";
@@ -56,7 +56,11 @@ contract WhitelistFacet is Modifiers {
         emit WhitelistOwnershipTransferred(_whitelistId, _whitelistOwner);
     }
 
-    function setWhitelistAccessRight(uint32 _whitelistId, uint256 _actionRight, uint256 _accessRight) external {
+    function setWhitelistAccessRight(
+        uint32 _whitelistId,
+        uint256 _actionRight,
+        uint256 _accessRight
+    ) external {
         require(LibWhitelist._whitelistExists(_whitelistId), "WhitelistFacet: Whitelist not found");
         require(LibWhitelist.checkWhitelistOwner(_whitelistId), "WhitelistFacet: Not whitelist owner");
 

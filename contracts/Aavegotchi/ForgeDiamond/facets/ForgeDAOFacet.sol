@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.1;
 
 import "../libraries/LibAppStorage.sol";
-import {LibCustomError} from "../../libraries/LibCustomError.sol";
 
 contract ForgeDAOFacet is Modifiers {
     event SetAavegotchiDaoAddress(address newAddress);
@@ -211,8 +210,7 @@ contract ForgeDAOFacet is Modifiers {
     // @param quantities Initial amounts of each prize available
     function setGeodePrizes(uint256[] calldata ids, uint256[] calldata quantities) external onlyDaoOrOwner {
         require(false, "ForgeDAOFacet: Deprecated");
-
-        if (ids.length != quantities.length) revert LibCustomError.ArrayLengthMismatch();
+        require(ids.length == quantities.length, "ForgeDAOFacet: mismatched arrays");
 
         for (uint256 i; i < s.geodePrizeTokenIds.length; i++) {
             delete s.geodePrizeQuantities[s.geodePrizeTokenIds[i]];
@@ -234,7 +232,7 @@ contract ForgeDAOFacet is Modifiers {
     // @param quantities Initial amounts of each prize available
     // @param rarities Rarity level of each prize, denoted using rarity score modifier (i.e. common = 1, uncommon = 2, rare = 5, etc)
     function setMultiTierGeodePrizes(uint256[] calldata ids, uint256[] calldata quantities, uint8[] calldata rarities) external onlyDaoOrOwner {
-        if (ids.length != quantities.length || quantities.length != rarities.length) revert LibCustomError.ArrayLengthMismatch();
+        require(ids.length == quantities.length && quantities.length == rarities.length, "ForgeDAOFacet: mismatched arrays");
 
         for (uint256 i; i < s.geodePrizeTokenIds.length; i++) {
             delete s.geodePrizeQuantities[s.geodePrizeTokenIds[i]];

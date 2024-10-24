@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.1;
 
 import "../interfaces/IERC721TokenReceiver.sol";
 
@@ -23,7 +23,13 @@ library LibERC721 {
 
     bytes4 internal constant ERC721_RECEIVED = 0x150b7a02;
 
-    function checkOnERC721Received(address _operator, address _from, address _to, uint256 _tokenId, bytes memory _data) internal {
+    function checkOnERC721Received(
+        address _operator,
+        address _from,
+        address _to,
+        uint256 _tokenId,
+        bytes memory _data
+    ) internal {
         uint256 size;
         assembly {
             size := extcodesize(_to)

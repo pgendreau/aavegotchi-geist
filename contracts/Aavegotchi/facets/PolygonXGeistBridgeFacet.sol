@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.1;
 
 import {Aavegotchi, Modifiers} from "../libraries/LibAppStorage.sol";
 import {LibAavegotchi} from "../libraries/LibAavegotchi.sol";
@@ -10,7 +10,13 @@ import {INFTBridge} from "../../shared/interfaces/INFTBridge.sol";
 import "../WearableDiamond/interfaces/IEventHandlerFacet.sol";
 
 contract PolygonXGeistBridgeFacet is Modifiers {
-    function bridgeGotchi(address _receiver, uint256 _tokenId, uint256 _msgGasLimit, address _connector) external payable {
+
+    function bridgeGotchi(
+        address _receiver,
+        uint256 _tokenId,
+        uint256 _msgGasLimit,
+        address _connector
+    ) external payable {
         Aavegotchi memory _aavegotchi = s.aavegotchis[_tokenId];
         bytes memory _metadata = abi.encode(_aavegotchi);
         INFTBridge(s.gotchGeistBridge).bridge(_receiver, msg.sender, _tokenId, 1, _msgGasLimit, _connector, _metadata, new bytes(0));
@@ -32,12 +38,10 @@ contract PolygonXGeistBridgeFacet is Modifiers {
         for (uint i; i < _aavegotchi.equippedWearables.length; i++) {
             if (_aavegotchi.equippedWearables[i] != 0) {
                 uint wearableId = _aavegotchi.equippedWearables[i];
-                if (isMint) {
-                    // if bridge is controller, mint
+                if (isMint) { // if bridge is controller, mint
                     s.itemTypes[wearableId].totalQuantity += 1;
                     IEventHandlerFacet(s.wearableDiamond).emitTransferSingleEvent(msg.sender, address(0), address(this), wearableId, 1);
-                } else {
-                    // if bridge is vault
+                } else { // if bridge is vault
                     LibItems.removeFromOwner(s.itemGeistBridge, wearableId, 1);
                     IEventHandlerFacet(s.wearableDiamond).emitTransferSingleEvent(msg.sender, s.itemGeistBridge, address(this), wearableId, 1);
                 }
@@ -98,7 +102,13 @@ contract PolygonXGeistBridgeFacet is Modifiers {
         delete _aavegotchi;
     }
 
-    function bridgeItem(address _receiver, uint256 _tokenId, uint256 _amount, uint256 _msgGasLimit, address _connector) external payable {
+    function bridgeItem(
+        address _receiver,
+        uint256 _tokenId,
+        uint256 _amount,
+        uint256 _msgGasLimit,
+        address _connector
+    ) external payable {
         INFTBridge(s.itemGeistBridge).bridge(_receiver, msg.sender, _tokenId, _amount, _msgGasLimit, _connector, new bytes(0), new bytes(0));
     }
 

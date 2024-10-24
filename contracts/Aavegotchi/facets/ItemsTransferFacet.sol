@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.1;
 
 import {Modifiers, EQUIPPED_WEARABLE_SLOTS, Aavegotchi} from "../libraries/LibAppStorage.sol";
 import {IERC721} from "../../shared/interfaces/IERC721.sol";
@@ -25,7 +25,13 @@ contract ItemsTransferFacet is Modifiers {
         @param _value   Transfer amount
         @param _data    Additional data with no specified format, MUST be sent unaltered in call to `onERC1155Received` on `_to`
     */
-    function safeTransferFrom(address _from, address _to, uint256 _id, uint256 _value, bytes calldata _data) external {
+    function safeTransferFrom(
+        address _from,
+        address _to,
+        uint256 _id,
+        uint256 _value,
+        bytes calldata _data
+    ) external {
         require(_to != address(0), "ItemsTransfer: Can't transfer to 0 address");
         address sender = LibMeta.msgSender();
         require(sender == _from || s.operators[_from][sender] || sender == address(this), "ItemsTransfer: Not owner and not approved to transfer");
@@ -52,7 +58,13 @@ contract ItemsTransferFacet is Modifiers {
         @param _values  Transfer amounts per token type (order and length must match _ids array)
         @param _data    Additional data with no specified format, MUST be sent unaltered in call to the `ERC1155TokenReceiver` hook(s) on `_to`
     */
-    function safeBatchTransferFrom(address _from, address _to, uint256[] calldata _ids, uint256[] calldata _values, bytes calldata _data) external {
+    function safeBatchTransferFrom(
+        address _from,
+        address _to,
+        uint256[] calldata _ids,
+        uint256[] calldata _values,
+        bytes calldata _data
+    ) external {
         require(_to != address(0), "ItemsTransfer: Can't transfer to 0 address");
         require(_ids.length == _values.length, "ItemsTransfer: ids not same length as values");
         address sender = LibMeta.msgSender();
@@ -74,7 +86,13 @@ contract ItemsTransferFacet is Modifiers {
     /// @param _toContract The ERC721 contract of the receiving token
     /// @param _toTokenId The receiving token
     /// @param _value The amount of tokens to transfer
-    function transferToParent(address _from, address _toContract, uint256 _toTokenId, uint256 _id, uint256 _value) external {
+    function transferToParent(
+        address _from,
+        address _toContract,
+        uint256 _toTokenId,
+        uint256 _id,
+        uint256 _value
+    ) external {
         require(_toContract != address(0), "ItemsTransfer: Can't transfer to 0 address");
         address sender = LibMeta.msgSender();
         require(sender == _from || s.operators[_from][sender], "ItemsTransfer: Not owner and not approved to transfer");
@@ -137,7 +155,11 @@ contract ItemsTransferFacet is Modifiers {
         IEventHandlerFacet(s.wearableDiamond).emitTransferBatchEvent(sender, _from, _toContract, _ids, _values);
     }
 
-    function transferFromTokenApproved(address _sender, address _fromContract, uint256 _fromTokenId) internal view {
+    function transferFromTokenApproved(
+        address _sender,
+        address _fromContract,
+        uint256 _fromTokenId
+    ) internal view {
         if (_fromContract == address(this)) {
             address owner = s.aavegotchis[_fromTokenId].owner;
             require(
@@ -162,7 +184,13 @@ contract ItemsTransferFacet is Modifiers {
     /// @param _to The address the token is transferred to
     /// @param _id ID of the token
     /// @param _value The amount of tokens to transfer
-    function transferFromParent(address _fromContract, uint256 _fromTokenId, address _to, uint256 _id, uint256 _value) external {
+    function transferFromParent(
+        address _fromContract,
+        uint256 _fromTokenId,
+        address _to,
+        uint256 _id,
+        uint256 _value
+    ) external {
         require(_to != address(0), "ItemsTransfer: Can't transfer to 0 address");
 
         //To do: Check if the item can be transferred.
@@ -279,10 +307,10 @@ contract ItemsTransferFacet is Modifiers {
         @return           `bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))`
     */
     function onERC1155Received(
-        address /*_operator*/,
-        address /*_from*/,
-        uint256 /*_id*/,
-        uint256 /*_value*/,
+        address, /*_operator*/
+        address, /*_from*/
+        uint256, /*_id*/
+        uint256, /*_value*/
         bytes calldata /*_data*/
     ) external pure returns (bytes4) {
         return LibERC1155.ERC1155_ACCEPTED;
@@ -297,10 +325,10 @@ contract ItemsTransferFacet is Modifiers {
         @return           `bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))`
     */
     function onERC1155BatchReceived(
-        address /*_operator*/,
-        address /*_from*/,
-        uint256[] calldata /*_ids*/,
-        uint256[] calldata /*_values*/,
+        address, /*_operator*/
+        address, /*_from*/
+        uint256[] calldata, /*_ids*/
+        uint256[] calldata, /*_values*/
         bytes calldata /*_data*/
     ) external pure returns (bytes4) {
         return LibERC1155.ERC1155_BATCH_ACCEPTED;
@@ -331,7 +359,11 @@ contract ItemsTransferFacet is Modifiers {
 
     ///@notice Used to extract items that have been accidentally sent to the Diamond contract
 
-    function extractItemsFromDiamond(address _to, uint256[] calldata _itemIds, uint256[] calldata _values) external onlyItemManager {
+    function extractItemsFromDiamond(
+        address _to,
+        uint256[] calldata _itemIds,
+        uint256[] calldata _values
+    ) external onlyItemManager {
         address sender = LibMeta.msgSender();
 
         for (uint256 i; i < _itemIds.length; i++) {

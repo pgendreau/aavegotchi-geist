@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.1;
 
 /******************************************************************************\
 * Authors: Nick Mudge (https://twitter.com/mudgen)

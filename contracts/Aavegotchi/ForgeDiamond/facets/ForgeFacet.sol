@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.1;
 
 import "../libraries/LibAppStorage.sol";
 import {LibToken} from "../libraries/LibToken.sol";
 import {WearablesFacet} from "../../WearableDiamond/facets/WearablesFacet.sol";
 import {ForgeLibDiamond} from "../libraries/ForgeLibDiamond.sol";
+import {ForgeDiamond} from "../ForgeDiamond.sol";
 import {ForgeTokenFacet} from "./ForgeTokenFacet.sol";
 
 // Аavegotchi
@@ -16,8 +17,6 @@ import {AavegotchiFacet} from "../../facets/AavegotchiFacet.sol";
 import {AavegotchiGameFacet} from "../../facets/AavegotchiGameFacet.sol";
 import {LendingGetterAndSetterFacet} from "../../facets/LendingGetterAndSetterFacet.sol";
 import {IERC1155Marketplace} from "../../../shared/interfaces/IERC1155Marketplace.sol";
-
-import {LibCustomError} from "../../libraries/LibCustomError.sol";
 
 contract ForgeFacet is Modifiers {
     event TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value);
@@ -282,7 +281,7 @@ contract ForgeFacet is Modifiers {
     }
 
     function smeltWearables(uint256[] calldata _itemIds, uint256[] calldata _gotchiIds) external whenNotPaused {
-        if (_itemIds.length != _gotchiIds.length) revert LibCustomError.ArrayLengthMismatch();
+        require(_itemIds.length == _gotchiIds.length, "ForgeFacet: mismatched array lengths");
 
         for (uint256 i; i < _itemIds.length; i++) {
             _smelt(_itemIds[i], _gotchiIds[i]);
@@ -387,8 +386,7 @@ contract ForgeFacet is Modifiers {
     /// @param _gotchiIds An array containing the gotchi ID queues to speed up
     /// @param _amounts An array containing the corresponding amounts of $GLTR tokens to pay for each queue speedup
     function reduceQueueTime(uint256[] calldata _gotchiIds, uint40[] calldata _amounts) external {
-        if (_gotchiIds.length != _amounts.length) revert LibCustomError.ArrayLengthMismatch();
-
+        require(_gotchiIds.length == _amounts.length, "InstallationFacet: Mismatched arrays");
         for (uint256 i; i < _gotchiIds.length; i++) {
             uint256 gotchiId = _gotchiIds[i];
             ForgeQueueItem storage queueItem = _getForgeQueueItem(gotchiId);
@@ -450,7 +448,7 @@ contract ForgeFacet is Modifiers {
     }
 
     function forgeWearables(uint256[] calldata _itemIds, uint256[] calldata _gotchiIds, uint40[] calldata _gltr) external whenNotPaused {
-        if (_itemIds.length != _gotchiIds.length || _gotchiIds.length != _gltr.length) revert LibCustomError.ArrayLengthMismatch();
+        require(_itemIds.length == _gotchiIds.length && _gotchiIds.length == _gltr.length, "ForgeFacet: mismatched array lengths");
 
         for (uint256 i; i < _itemIds.length; i++) {
             _forge(_itemIds[i], _gotchiIds[i], _gltr[i]);
@@ -567,8 +565,7 @@ contract ForgeFacet is Modifiers {
         uint256[] memory amounts // bytes memory data
     ) internal {
         require(to != address(0), "ForgeTokenFacet: mint to the zero address");
-
-        if (ids.length != amounts.length) revert LibCustomError.ArrayLengthMismatch();
+        require(ids.length == amounts.length, "ForgeTokenFacet: ids and amounts length mismatch");
 
         for (uint256 i = 0; i < ids.length; i++) {
             LibToken.addToOwner(to, ids[i], amounts[i]);

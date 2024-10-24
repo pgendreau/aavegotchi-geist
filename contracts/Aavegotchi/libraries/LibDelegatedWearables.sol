@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.1;
 
 import {ItemRolesInfo, GotchiEquippedDepositsInfo, LibAppStorage, AppStorage} from "../libraries/LibAppStorage.sol";
 import {LibItems} from "../libraries/LibItems.sol";

@@ -4,7 +4,7 @@
  * Please reach out with any questions or concerns
  * https://github.com/hamdiallam/Solidity-RLP/blob/e681e25a376dbd5426b509380bc03446f05d0f97/contracts/RLPReader.sol
  */
-pragma solidity ^0.8.4;
+pragma solidity 0.8.1;
 
 library RLPReader {
     uint8 constant STRING_SHORT_START = 0x80;
@@ -222,7 +222,11 @@ library RLPReader {
      * @param dest Pointer to destination
      * @param len Amount of memory to copy from the source
      */
-    function copy(uint256 src, uint256 dest, uint256 len) private pure {
+    function copy(
+        uint256 src,
+        uint256 dest,
+        uint256 len
+    ) private pure {
         unchecked {
             if (len == 0) return;
 
@@ -237,7 +241,7 @@ library RLPReader {
             }
 
             // left over bytes. Mask is used to remove unwanted bytes from the word
-            uint256 mask = 256 ** (WORD_SIZE - len) - 1;
+            uint256 mask = 256**(WORD_SIZE - len) - 1;
             assembly {
                 let srcpart := and(mload(src), not(mask)) // zero out src
                 let destpart := and(mload(dest), mask) // retrieve the bytes

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.1;
 
 contract LinkTokenMock {
     bytes32 keyHash;
@@ -7,7 +7,11 @@ contract LinkTokenMock {
     address requester;
     mapping(bytes32 => uint256) nonces;
 
-    function transferAndCall(address _to, uint256 _value, bytes calldata _data) external returns (bool) {
+    function transferAndCall(
+        address _to,
+        uint256 _value,
+        bytes calldata _data
+    ) external returns (bool) {
         _to;
         _value;
         (keyHash, seed) = abi.decode(_data, (bytes32, uint256));

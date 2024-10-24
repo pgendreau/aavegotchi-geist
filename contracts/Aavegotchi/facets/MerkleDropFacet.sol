@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.4;
+pragma solidity 0.8.1;
 
 import {Modifiers, XPMerkleDrops} from "../libraries/LibAppStorage.sol";
 import {LibMerkle} from "../libraries/LibMerkle.sol";
 import "../libraries/LibXPAllocation.sol";
-import {LibCustomError} from "../libraries/LibCustomError.sol";
 
 contract MerkleDropFacet is Modifiers {
     //allow the diamond owner to create new xp drops
@@ -50,7 +49,7 @@ contract MerkleDropFacet is Modifiers {
         uint256[][] calldata _onlyGotchisPositions
     ) external {
         if (_propIds.length != _gotchiIds.length || _claimers.length != _gotchiIds.length || _gotchiIds.length != _proofs.length)
-            revert LibCustomError.ArrayLengthMismatch();
+            revert("ArrayLengthMismatch");
         for (uint256 i; i < _propIds.length; i++) {
             LibXPAllocation._claimXPDrop(_propIds[i], _claimers[i], _gotchiIds[i], _proofs[i], _onlyGotchis[i], _onlyGotchisPositions[i]);
         }

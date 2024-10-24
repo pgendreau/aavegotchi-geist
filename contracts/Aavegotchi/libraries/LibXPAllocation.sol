@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.1;
 
 import {AppStorage, LibAppStorage, XPMerkleDrops} from "./LibAppStorage.sol";
 import {LibMerkle} from "../libraries/LibMerkle.sol";

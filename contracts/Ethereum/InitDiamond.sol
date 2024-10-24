@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.1;
 
 import {LibDiamond} from "../shared/libraries/LibDiamond.sol";
 import {AppStorage} from "./libraries/LibAppStorage.sol";
@@ -15,15 +15,17 @@ contract InitDiamond {
     function init(address _rootChainManager) external {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         s.itemsBaseUri = "https://aavegotchi.com/metadata/items/";
-        s.rootChainManager = _rootChainManager;
+        s.rootChainManager = _rootChainManager;         
 
         // adding ERC165 data
         ds.supportedInterfaces[type(IERC165).interfaceId] = true;
         ds.supportedInterfaces[type(IDiamondCut).interfaceId] = true;
         ds.supportedInterfaces[type(IDiamondLoupe).interfaceId] = true;
         ds.supportedInterfaces[type(IERC173).interfaceId] = true;
-        ds.supportedInterfaces[type(IERC721).interfaceId] = true;
+        ds.supportedInterfaces[type(IERC721).interfaceId] = true;        
     }
 
-    function filler() external {}
+    function filler() external {
+        
+    }
 }

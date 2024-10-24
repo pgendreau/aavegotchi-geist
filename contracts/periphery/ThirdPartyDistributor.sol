@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.13;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -83,7 +83,11 @@ contract ThirdPartyDistributor is Ownable {
         }
     }
 
-    constructor(address _owner, Distribution[] memory _distributions, ReleaseAccess _releaseAccess) {
+    constructor(
+        address _owner,
+        Distribution[] memory _distributions,
+        ReleaseAccess _releaseAccess
+    ) {
         _transferOwnership(_owner);
         _updateDistributions(_distributions);
         releaseAccess = _releaseAccess;

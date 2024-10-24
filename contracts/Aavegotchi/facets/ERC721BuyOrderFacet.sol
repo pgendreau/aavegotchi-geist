@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.1;
 
 import {LibAavegotchi} from "../libraries/LibAavegotchi.sol";
 import {LibBuyOrder} from "../libraries/LibBuyOrder.sol";
@@ -9,7 +9,6 @@ import {LibMeta} from "../../shared/libraries/LibMeta.sol";
 import {LibGotchiLending} from "../libraries/LibGotchiLending.sol";
 import {Modifiers, ERC721BuyOrder} from "../libraries/LibAppStorage.sol";
 import {BaazaarSplit, LibSharedMarketplace, SplitAddresses} from "../libraries/LibSharedMarketplace.sol";
-import {LibCustomError} from "../libraries/LibCustomError.sol";
 
 contract ERC721BuyOrderFacet is Modifiers {
     event ERC721BuyOrderAdded(
@@ -109,7 +108,7 @@ contract ERC721BuyOrderFacet is Modifiers {
     ) external payable {
         require(_priceInWei >= 1e18, "ERC721BuyOrder: price should be 1 GHST or larger");
 
-        if (msg.value != _priceInWei) revert LibCustomError.GHSTAmountMismatch();
+        require(msg.value == _priceInWei, "ERC721BuyOrder: GHST amount mismatch!");
 
         address sender = LibMeta.msgSender();
 

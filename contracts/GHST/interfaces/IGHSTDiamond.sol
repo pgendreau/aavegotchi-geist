@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.1;
 
 interface IGHSTDiamond {
     function name() external pure returns (string memory);
@@ -14,7 +14,11 @@ interface IGHSTDiamond {
 
     function transfer(address _to, uint256 _value) external returns (bool success);
 
-    function transferFrom(address _from, address _to, uint256 _value) external returns (bool success);
+    function transferFrom(
+        address _from,
+        address _to,
+        uint256 _value
+    ) external returns (bool success);
 
     function approve(address _spender, uint256 _value) external returns (bool success);
 

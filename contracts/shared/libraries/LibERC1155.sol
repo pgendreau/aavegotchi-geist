@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.1;
 
 import {IERC1155TokenReceiver} from "../interfaces/IERC1155TokenReceiver.sol";
 
@@ -39,7 +39,14 @@ library LibERC1155 {
     */
     event URI(string _value, uint256 indexed _id);
 
-    function onERC1155Received(address _operator, address _from, address _to, uint256 _id, uint256 _value, bytes memory _data) internal {
+    function onERC1155Received(
+        address _operator,
+        address _from,
+        address _to,
+        uint256 _id,
+        uint256 _value,
+        bytes memory _data
+    ) internal {
         uint256 size;
         assembly {
             size := extcodesize(_to)
