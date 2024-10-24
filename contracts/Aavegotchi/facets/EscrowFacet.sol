@@ -5,7 +5,6 @@ import {Modifiers} from "../libraries/LibAppStorage.sol";
 import {LibERC20} from "../../shared/libraries/LibERC20.sol";
 import {IERC20} from "../../shared/interfaces/IERC20.sol";
 import {LibMeta} from "../../shared/libraries/LibMeta.sol";
-import {LibAavegotchi} from "../libraries/LibAavegotchi.sol";
 import {CollateralEscrow} from "../CollateralEscrow.sol";
 
 contract EscrowFacet is Modifiers {
