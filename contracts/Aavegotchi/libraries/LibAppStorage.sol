@@ -283,7 +283,7 @@ struct AppStorage {
     string symbol;
     //Addresses
     address[] collateralTypes;
-    // address ghstContract;
+    address wghstContract;
     address childChainManager;
     address gameManager;
     address dao;
@@ -388,7 +388,6 @@ struct AppStorage {
     mapping(uint256 => ERC1155BuyOrder) erc1155BuyOrders; // buyOrderId => data
     address gotchGeistBridge;
     address itemGeistBridge;
-    address wghstContract;
 }
 
 library LibAppStorage {
