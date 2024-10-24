@@ -153,7 +153,7 @@ describe("Baazaar Test", function () {
             value: "0",
           }
         )
-      ).to.be.revertedWith("ERC721MarketplaceFacet: Not enough GHST sent");
+      ).to.be.revertedWith("ERC721MarketplaceFacet: GHST amount mismatch");
     });
 
     it("should be able to purchase an erc721 listing", async () => {
@@ -227,7 +227,7 @@ describe("Baazaar Test", function () {
     it("should not be able to buy an erc1155 item from ShopFacet with insufficient GHST", async () => {
       await expect(
         shopFacet.purchaseItemsWithGhst(owner.address, [erc1155TokenId], [1])
-      ).to.be.revertedWith("ShopFacet: Insufficient GHST value");
+      ).to.be.revertedWith("ShopFacet: GHST value mismatch");
     });
 
     it("should be able to buy an erc1155 item from ShopFacet", async () => {
@@ -294,7 +294,7 @@ describe("Baazaar Test", function () {
           listing.priceInWei,
           owner.address
         )
-      ).to.be.revertedWith("ERC1155Marketplace: Insufficient GHST sent");
+      ).to.be.revertedWith("ERC1155Marketplace: GHST amount mismatch");
     });
 
     it("should be able to purchase an erc1155 listing", async () => {
@@ -450,7 +450,7 @@ describe("Baazaar Test", function () {
           [false, false, false], // validationOptions
           { value: "0" }
         )
-      ).to.be.revertedWith("ERC721BuyOrder: Not enough GHST!");
+      ).to.be.revertedWith("ERC721BuyOrder: GHST amount mismatch!");
     });
 
     it("Should be able to create an offer", async function () {
