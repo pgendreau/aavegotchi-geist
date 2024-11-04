@@ -12,17 +12,17 @@ export default async function main() {
   if (network.name === "polter") {
     diamondAddress = "0x1F0eb9099b9c398323dcf2F133dFdAD9dE7cF994"
     // controller address
-    gotchiBridgeAddress = "0x651ae3874e3485bAdc8cE39bC29e53A1fa14fD8F"
-    gotchiConnectorAddress = "0xd9290D5A86985C84aaF662dbc2cc59abFb06F6a7"
-    itemBridgeAddress = "0xB54f6A7b222fcf6eE1C1163A781609e60BaE5008"
-    itemConnectorAddress = "0xcDe1769Cc8Af3772183c35aF97ca0a43C090D7f0"
+    gotchiBridgeAddress = "0x5ABB7E28160f82A84e389aDcc9d8CE3F7a0C8D92"
+    gotchiConnectorAddress = "0xE7af5160334aded39DD9826cBcBa0B51A1B184e9"
+    itemBridgeAddress = "0x10Cf0D5C1986a7Aa98aDb3bfa3529c1BBDa59FB9"
+    itemConnectorAddress = "0x27fA28c1f241E5dEA9AA583751E5D968a28FD9D5"
   } else if (network.name === "base-sepolia") {
     diamondAddress = "0x87C969d083189927049f8fF3747703FB9f7a8AEd"
     // vault address
-    gotchiBridgeAddress = "0x0e915A936d4a7E300B749112DA80D047Bf580DA7"
-    gotchiConnectorAddress = "0x06C845Df424C9DD61Eb4D59ceCa631b597CC3c5F"
-    itemBridgeAddress = "0xde94E671f4612D0F020851173e9fD99d3A6Cc9F3"
-    itemConnectorAddress = "0xff2b3CdaA9882b89c8d64a6904263A58c4644762"
+    gotchiBridgeAddress = "0x110A646276961C2d8a54b951bbC8B169E0F573c4"
+    gotchiConnectorAddress = "0xd912F40C27E317db2334e210de892e9dc92816af"
+    itemBridgeAddress = "0x130119B300049A80C20B2D3bfdFCfd021373E5e7"
+    itemConnectorAddress = "0xb8388b23222876FAC04b464fA0d6A064c67A14FC"
   } else if (network.name === "matic") {
     diamondAddress = maticDiamondAddress
     // TODO: connector address
@@ -49,7 +49,7 @@ export default async function main() {
 
   const accounts = await ethers.getSigners();
   const signer = accounts[0];
-  const gasLimit = 500000;
+  const gasLimit = 1000000;
   const gasPrice = 100000000000;
   let tx;
 
@@ -59,7 +59,7 @@ export default async function main() {
   // await tx.wait()
 
   // aavegotchi bridging
-  for (let tokenId = 106; tokenId < 108; tokenId++) {
+  for (let tokenId = 108; tokenId < 110; tokenId++) {
     const gotchi = await aavegotchiFacet.getAavegotchi(tokenId)
     console.log(`Gotchi: ${gotchi}`)
     const svg = await svgFacet.getAavegotchiSvg(tokenId)
@@ -85,7 +85,7 @@ export default async function main() {
   // await tx.wait()
 
   // item bridging
-  // for (let tokenId = 1; tokenId < 30; tokenId++) {
+  // for (let tokenId = 1; tokenId < 5; tokenId++) {
   //   console.log(`Trying to bridge an item. Item Id:${tokenId}`)
   //   tx = await bridgeFacet.bridgeItem(signer.address, tokenId, 2, gasLimit, itemConnectorAddress, {gasPrice: gasPrice})
   //   console.log(`Wating for tx to be validated, tx hash: ${tx.hash}`)
@@ -93,7 +93,7 @@ export default async function main() {
   // }
 
   // equip/unequip gotchi
-  // for (let tokenId = 106; tokenId < 107; tokenId++) {
+  // for (let tokenId = 109; tokenId < 110; tokenId++) {
   //   console.log(`Trying to equip/unequip a gotchi. Token Id: ${tokenId}`);
   //   // // equip all slots
   //   // tx = await itemsFacet.equipWearables(tokenId, [15, 13, 14, 10, 29, 12, 151, 0, 0, 0, 0, 0, 0, 0, 0, 0])

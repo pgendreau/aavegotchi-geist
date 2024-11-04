@@ -13,8 +13,8 @@ export default async function main() {
   if (network.name === "polter") { // polter-testnet
     diamondAddress = "0x1F0eb9099b9c398323dcf2F133dFdAD9dE7cF994";
     // controller address
-    gotchiBridgeAddress = "0x651ae3874e3485bAdc8cE39bC29e53A1fa14fD8F";
-    itemBridgeAddress = "0xB54f6A7b222fcf6eE1C1163A781609e60BaE5008";
+    gotchiBridgeAddress = "0x5ABB7E28160f82A84e389aDcc9d8CE3F7a0C8D92";
+    itemBridgeAddress = "0x10Cf0D5C1986a7Aa98aDb3bfa3529c1BBDa59FB9";
   } else if (network.name === "geist") {
     diamondAddress = "";
     // TODO: controller address
