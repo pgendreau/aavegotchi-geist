@@ -15,8 +15,7 @@ contract PolygonXGeistBridgeFacet is Modifiers {
         address _receiver,
         uint256 _tokenId,
         uint256 _msgGasLimit,
-        address _connector,
-        bool _hasVault
+        address _connector
     ) external payable {
         Aavegotchi memory _aavegotchi = s.aavegotchis[_tokenId];
         bytes memory _metadata = abi.encode(_aavegotchi);
