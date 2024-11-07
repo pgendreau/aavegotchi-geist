@@ -27,8 +27,8 @@ contract WGHST is ERC20("Wrapped GHST", "WGHST", 18) {
     function withdraw(uint256 amount) public virtual {
         _burn(msg.sender, amount);
 
-        emit Withdrawal(msg.sender, amount);
-
         msg.sender.safeTransferETH(amount);
+
+        emit Withdrawal(msg.sender, amount);
     }
 }
