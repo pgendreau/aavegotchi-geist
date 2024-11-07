@@ -15,40 +15,40 @@ export async function deployWGHST() {
 
   await wghst.deployed();
 
-  // console.log("WGHST deployed to:", wghst.address);
+  console.log("WGHST deployed to:", wghst.address);
 
-  // //deposit 1 eth
-  // await wghst.deposit({ value: ethers.utils.parseEther("1") });
+  //deposit 1 eth
+  await wghst.deposit({ value: ethers.utils.parseEther("1") });
 
-  // console.log(
-  //   "WGHST balance of deployer:",
-  //   await wghst.balanceOf(deployer.address)
-  // );
+  console.log(
+    "WGHST balance of deployer:",
+    await wghst.balanceOf(deployer.address)
+  );
 
-  // await wghst.withdraw(ethers.utils.parseEther("1"));
+  await wghst.withdraw(ethers.utils.parseEther("1"));
 
-  // console.log(
-  //   "WGHST balance of deployer:",
-  //   await wghst.balanceOf(deployer.address)
-  // );
+  console.log(
+    "WGHST balance of deployer:",
+    await wghst.balanceOf(deployer.address)
+  );
 
-  // // Transfer GHST directly to WGHST
-  // await deployer.sendTransaction({
-  //   to: wghst.address,
-  //   value: ethers.utils.parseEther("1"),
-  // });
+  // Transfer GHST directly to WGHST
+  await deployer.sendTransaction({
+    to: wghst.address,
+    value: ethers.utils.parseEther("1"),
+  });
 
-  // console.log(
-  //   "WGHST balance of deployer:",
-  //   await wghst.balanceOf(deployer.address)
-  // );
+  console.log(
+    "WGHST balance of deployer:",
+    await wghst.balanceOf(deployer.address)
+  );
 
-  // await wghst.withdraw(ethers.utils.parseEther("1"));
+  await wghst.withdraw(ethers.utils.parseEther("1"));
 
-  // console.log(
-  //   "WGHST balance of deployer:",
-  //   await wghst.balanceOf(deployer.address)
-  // );
+  console.log(
+    "WGHST balance of deployer:",
+    await wghst.balanceOf(deployer.address)
+  );
 
   return wghst;
 }

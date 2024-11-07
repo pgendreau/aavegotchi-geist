@@ -31,6 +31,7 @@ require("./tasks/grantXP_customValues");
 require("./tasks/generateDiamondABI");
 require("./tasks/updateWearableExceptions");
 require("./tasks/deployXPDrop");
+require("./tasks/verifyContracts");
 
 // You have to export an object to set up your config
 // This object can have the following optional entries:
@@ -41,6 +42,7 @@ export default {
     apiKey: {
       // matic: process.env.POLYGON_API_KEY,
       polter: "empty",
+      geist: "empty",
     },
     customChains: [
       {
@@ -49,6 +51,14 @@ export default {
         urls: {
           apiURL: "https://polter-testnet.explorer.alchemy.com/api",
           browserURL: "https://polter-testnet.explorer.alchemy.com",
+        },
+      },
+      {
+        network: "geist",
+        chainId: 63157,
+        urls: {
+          apiURL: "https://geist-mainnet.explorer.alchemy.com/api",
+          browserURL: "https://geist-mainnet.explorer.alchemy.com",
         },
       },
     ],
@@ -91,6 +101,10 @@ export default {
     },
     polter: {
       url: process.env.POLTER_TESTNET_URL,
+      accounts: [process.env.SECRET],
+    },
+    geist: {
+      url: process.env.GEIST_URL,
       accounts: [process.env.SECRET],
     },
     // "base-sepolia": {
