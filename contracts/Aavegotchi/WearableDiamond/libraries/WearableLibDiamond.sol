@@ -40,7 +40,7 @@ library WearableLibDiamond {
         // owner of the contract
         address contractOwner;
         //aavegotchi master diamond address
-        address AAVEGOTCHI_DIAMOND;
+        address aavegotchiDiamond;
     }
 
     function diamondStorage() internal pure returns (DiamondStorage storage ds) {
@@ -50,8 +50,8 @@ library WearableLibDiamond {
         }
     }
 
-    function AAVEGOTCHI_DIAMOND() internal view returns (address) {
-        return diamondStorage().AAVEGOTCHI_DIAMOND;
+    function aavegotchiDiamond() internal view returns (address) {
+        return diamondStorage().aavegotchiDiamond;
     }
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
@@ -71,8 +71,8 @@ library WearableLibDiamond {
         require(LibMeta.msgSender() == diamondStorage().contractOwner, "LibDiamond: Must be contract owner");
     }
 
-    function enforceIsDiamond() internal view {
-        require(msg.sender == diamondStorage().AAVEGOTCHI_DIAMOND, "LibDiamond: Caller must be Aavegotchi Diamond");
+    function onlyAavegotchiDiamond() internal view {
+        require(msg.sender == diamondStorage().aavegotchiDiamond, "LibDiamond: Caller must be Aavegotchi Diamond");
     }
 
     event DiamondCut(IDiamondCut.FacetCut[] _diamondCut, address _init, bytes _calldata);

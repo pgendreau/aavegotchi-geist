@@ -557,14 +557,6 @@ export async function deployFullDiamond() {
   const name = "Aavegotchi";
   const symbol = "GOTCHI";
 
-  // const childChainManager = "0xb5505a6d998549090530911180f38aC5130101c6";
-  // const vrfCoordinatorAmoy = "0x7E10652Cb79Ba97bC1D0F38a1e8FaD8464a8a908"; // todo
-  // const keyHash =
-  // "0x3f631d5ec60a0ce16203bcd6aff7ffbc423e22e452786288e172d467354304c8"; // todo
-  // const subscriptionIdAmoy = BigNumber.from(4534367);
-
-  const fee = ethers.utils.parseEther("0.0001");
-
   const accounts = await ethers.getSigners();
   const ownerAddress = await accounts[0].getAddress();
 
@@ -745,16 +737,11 @@ export async function deployFullDiamond() {
   );
   totalGasUsed = totalGasUsed.add(receipt.gasUsed);
 
-  const deets = await vrfFacet.getVrfInfo();
-  console.log("Vrf info:", deets);
-
   // wearable diamond
-
   let [eventhandlerFacet, wearablesFacet] = await deployFacets(
     "contracts/Aavegotchi/WearableDiamond/facets/EventHandlerFacet.sol:EventHandlerFacet",
     "contracts/Aavegotchi/WearableDiamond/facets/WearablesFacet.sol:WearablesFacet"
   );
-
   //get constructor args from aavegotchi diamond
   const [cutAddress, loupeAddress, ownershipAddress] =
     await aavegotchiDiamond.getDefaultFacetAddresses();

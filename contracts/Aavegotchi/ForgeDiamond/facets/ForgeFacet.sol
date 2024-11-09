@@ -47,23 +47,23 @@ contract ForgeFacet is Modifiers {
 
     // External contracts
     function aavegotchiGameFacet() internal view returns (AavegotchiGameFacet facet) {
-        facet = AavegotchiGameFacet(ForgeLibDiamond.AAVEGOTCHI_DIAMOND());
+        facet = AavegotchiGameFacet(ForgeLibDiamond.aavegotchiDiamond());
     }
 
     function aavegotchiFacet() internal view returns (AavegotchiFacet facet) {
-        facet = AavegotchiFacet(ForgeLibDiamond.AAVEGOTCHI_DIAMOND());
+        facet = AavegotchiFacet(ForgeLibDiamond.aavegotchiDiamond());
     }
 
     function itemsFacet() internal view returns (ItemsFacet facet) {
-        facet = ItemsFacet(ForgeLibDiamond.AAVEGOTCHI_DIAMOND());
+        facet = ItemsFacet(ForgeLibDiamond.aavegotchiDiamond());
     }
 
     function wearablesFacet() internal view returns (WearablesFacet facet) {
-        facet = WearablesFacet(ForgeLibDiamond.WEARABLE_DIAMOND());
+        facet = WearablesFacet(ForgeLibDiamond.wearableDiamond());
     }
 
     function lendingGetterAndSetterFacet() internal view returns (LendingGetterAndSetterFacet facet) {
-        facet = LendingGetterAndSetterFacet(ForgeLibDiamond.AAVEGOTCHI_DIAMOND());
+        facet = LendingGetterAndSetterFacet(ForgeLibDiamond.aavegotchiDiamond());
     }
 
     function gltrContract() internal view returns (IERC20 token) {
@@ -468,7 +468,7 @@ contract ForgeFacet is Modifiers {
     // @dev Only called from CollateralFacet's decreaseAndDestroy function. Not including a whenNotPaused modifier
     //      here to avoid impacts to aavegotchi sacrifice functionality.
     function mintEssence(address owner /*uint256 gotchiId*/) external {
-        require(LibMeta.msgSender() == ForgeLibDiamond.AAVEGOTCHI_DIAMOND(), "ForgeFacet: Can only be called by Aavegotchi Diamond");
+        require(LibMeta.msgSender() == ForgeLibDiamond.aavegotchiDiamond(), "ForgeFacet: Can only be called by Aavegotchi Diamond");
         //        require(aavegotchiFacet.ownerOf(gotchiId) == address(0), "ForgeFacet: Aavegotchi not sacrificed");
 
         _mintItem(owner, ESSENCE, 1000);

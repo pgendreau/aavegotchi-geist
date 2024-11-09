@@ -10,15 +10,15 @@ import {AavegotchiFacet} from "../../facets/AavegotchiFacet.sol";
 
 contract WearablesFacet {
     function periphery() internal view returns (PeripheryFacet pFacet) {
-        pFacet = PeripheryFacet(WearableLibDiamond.AAVEGOTCHI_DIAMOND());
+        pFacet = PeripheryFacet(WearableLibDiamond.aavegotchiDiamond());
     }
 
     function itemsFacet() internal view returns (ItemsFacet iFacet) {
-        iFacet = ItemsFacet(WearableLibDiamond.AAVEGOTCHI_DIAMOND());
+        iFacet = ItemsFacet(WearableLibDiamond.aavegotchiDiamond());
     }
 
     function aavegotchiFacet() internal view returns (AavegotchiFacet aFacet) {
-        aFacet = AavegotchiFacet(WearableLibDiamond.AAVEGOTCHI_DIAMOND());
+        aFacet = AavegotchiFacet(WearableLibDiamond.aavegotchiDiamond());
     }
 
     //READ
