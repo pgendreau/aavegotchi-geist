@@ -183,10 +183,12 @@ contract DAOFacet is Modifiers {
     ///@param _bodyColor The universal body color applied to NFTs in the new haunt
     function createHaunt(uint24 _hauntMaxSize, uint96 _portalPrice, bytes3 _bodyColor) external onlyDaoOrOwner returns (uint256 hauntId_) {
         uint256 currentHauntId = s.currentHauntId;
-        require(
-            s.haunts[currentHauntId].totalCount == s.haunts[currentHauntId].hauntMaxSize,
-            "AavegotchiFacet: Haunt must be full before creating new"
-        );
+
+        //removed on Geist
+        // require(
+        //     s.haunts[currentHauntId].totalCount == s.haunts[currentHauntId].hauntMaxSize,
+        //     "AavegotchiFacet: Haunt must be full before creating new"
+        // );
         hauntId_ = currentHauntId + 1;
         s.currentHauntId = uint16(hauntId_);
         s.haunts[hauntId_].hauntMaxSize = _hauntMaxSize;
@@ -211,10 +213,10 @@ contract DAOFacet is Modifiers {
     ///@param _payload A struct containing all details needed to be uploaded for a new Haunt
     function createHauntWithPayload(CreateHauntPayload calldata _payload) external onlyItemManager onlyPolygonOrTesting returns (uint256 hauntId_) {
         uint256 currentHauntId = s.currentHauntId;
-        require(
-            s.haunts[currentHauntId].totalCount == s.haunts[currentHauntId].hauntMaxSize,
-            "AavegotchiFacet: Haunt must be full before creating new"
-        );
+        // require(
+        //     s.haunts[currentHauntId].totalCount == s.haunts[currentHauntId].hauntMaxSize,
+        //     "AavegotchiFacet: Haunt must be full before creating new"
+        // );
 
         hauntId_ = currentHauntId + 1;
 
