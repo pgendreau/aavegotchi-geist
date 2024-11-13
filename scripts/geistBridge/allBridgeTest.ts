@@ -111,6 +111,73 @@ export default async function main() {
     }
   }
 
+  // console.log(`Bridging gotchis with batch function...\n\n`);
+  // const gotchiBridgeParams = [
+  //   {receiver: signerAddress, tokenId: tokenIds[0], msgGasLimit: gasLimit},
+  //   {receiver: signerAddress, tokenId: tokenIds[1], msgGasLimit: gasLimit},
+  //   // {receiver: signerAddress, tokenId: tokenIds[2], msgGasLimit: gasLimit},
+  // ]
+  //
+  // console.log(`Base Sepolia -> Polter\n`);
+  //
+  // for (let tokenId of tokenIds) {
+  //   const gotchi = await bsAavegotchiFacet.getAavegotchi(tokenId)
+  //   // console.log(`Gotchi id: ${tokenId}, gotchi: ${gotchi}`)
+  //   bsTokens[tokenId] = gotchi
+  //
+  //   console.log(`Trying to approve to send a gotchi. Token Id: ${tokenId}`);
+  //   tx = await bsAavegotchiFacet.approve(bsGotchiBridgeAddress, tokenId)
+  //   console.log(`Wating for tx to be validated, tx hash: ${tx.hash}`)
+  //   await tx.wait()
+  // }
+  // console.log(`Trying to bridge gotchis...`);
+  // tx = await bsBridgeFacet.bridgeGotchis(gotchiBridgeParams, bsGotchiConnectorAddress, {gasPrice: gasPrice})
+  // console.log(`Wating for tx to be validated, tx hash: ${tx.hash}`)
+  // await tx.wait()
+  //
+  // console.log(`Wait for bridging for 5 minutes...`);
+  // await delay(5);
+  //
+  // console.log(`Checking bridge result (Base Sepolia -> Polter)\n`);
+  // for (let tokenId of tokenIds) {
+  //   const gotchi = await polAavegotchiFacet.getAavegotchi(tokenId)
+  //   // console.log(`Gotchi id: ${tokenId}, gotchi: ${gotchi}`)
+  //   polTokens[tokenId] = gotchi
+  //   if((bsTokens[tokenId].baseRarityScore.toNumber() === gotchi.baseRarityScore.toNumber()) && (signerAddress.toLowerCase() === gotchi.owner.toLowerCase())){
+  //     console.log(`Bridging success. gotchi id: ${tokenId}`);
+  //   } else {
+  //     throw Error(`Bridging failed. gotchi id: ${tokenId}`);
+  //   }
+  // }
+  //
+  // console.log(`Polter -> Base Sepolia\n`);
+  //
+  // for (let tokenId of tokenIds) {
+  //   console.log(`Trying to approve to send a gotchi. Token Id: ${tokenId}`);
+  //   tx = await polAavegotchiFacet.approve(polGotchiBridgeAddress, tokenId)
+  //   console.log(`Wating for tx to be validated, tx hash: ${tx.hash}`)
+  //   await tx.wait()
+  //
+  // }
+  // console.log(`Trying to bridge gotchis...`);
+  // tx = await polBridgeFacet.bridgeGotchis(gotchiBridgeParams, polGotchiConnectorAddress, {gasPrice: gasPrice})
+  // console.log(`Wating for tx to be validated, tx hash: ${tx.hash}`)
+  // await tx.wait()
+  //
+  // console.log(`Wait for bridging for 5 minutes...`);
+  // await delay(5);
+  //
+  // console.log(`Checking bridge result (Polter -> Base Sepolia)\n`);
+  // for (let tokenId of tokenIds) {
+  //   const gotchi = await bsAavegotchiFacet.getAavegotchi(tokenId)
+  //   // console.log(`Gotchi id: ${tokenId}, gotchi: ${gotchi}`)
+  //   if((polTokens[tokenId].baseRarityScore.toNumber() === gotchi.baseRarityScore.toNumber()) && (signerAddress.toLowerCase() === gotchi.owner.toLowerCase())){
+  //     console.log(`Bridging success. gotchi id: ${tokenId}`);
+  //   } else {
+  //     throw Error(`Bridging failed. gotchi id: ${tokenId}`);
+  //   }
+  // }
+
   console.log(`Bridging item itself...\n\n`);
 
   console.log(`Base Sepolia -> Polter\n`);
