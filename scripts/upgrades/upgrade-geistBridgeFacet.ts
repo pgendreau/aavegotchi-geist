@@ -18,6 +18,8 @@ export async function upgrade() {
         "function bridgeItem(address _receiver, uint256 _tokenId, uint256 _amount, uint256 _msgGasLimit, address _connector) external payable",
         "function mint(address _to, uint _tokenId, uint _quantity) external",
         "function burn(address _from, uint _tokenId, uint _quantity) external",
+        "function bridgeGotchis(tuple(address receiver, uint256 tokenId, uint256 msgGasLimit)[] calldata bridgingParams, address _connector) external payable",
+        "function bridgeItems(tuple(address receiver, uint256 tokenId, uint256 amount, uint256 msgGasLimit)[] calldata bridgingParams, address _connector) external payable",
       ],
       removeSelectors: [],
     },
