@@ -291,12 +291,12 @@ struct AppStorage {
     address rarityFarming;
     string itemsBaseUri;
     bytes32 domainSeparator;
-    //VRF
+    // //VRF
     mapping(uint256 => uint256) vrfRequestIdToTokenId;
-    // mapping(bytes32 => uint256) vrfNonces;
-    bytes32 keyHash;
-    uint64 subscriptionId;
-    address vrfCoordinator;
+    // // mapping(bytes32 => uint256) vrfNonces;
+    // bytes32 keyHash;
+    // uint64 subscriptionId;
+    // address vrfCoordinator;
     // Marketplace
     uint256 nextERC1155ListingId;
     // erc1155 category => erc1155Order

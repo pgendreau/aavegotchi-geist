@@ -10,11 +10,7 @@ import {LibDiamond} from "../../shared/libraries/LibDiamond.sol";
 contract PeripheryFacet is Modifiers {
     //WRITE
 
-    function peripherySetApprovalForAll(
-        address _operator,
-        bool _approved,
-        address _onBehalfOf
-    ) external onlyPeriphery {
+    function peripherySetApprovalForAll(address _operator, bool _approved, address _onBehalfOf) external onlyPeriphery {
         s.operators[_onBehalfOf][_operator] = _approved;
     }
 
@@ -71,5 +67,9 @@ contract PeripheryFacet is Modifiers {
 
     function setPeriphery(address _periphery) external onlyOwner {
         s.wearableDiamond = _periphery;
+    }
+
+    function getWearableDiamond() external view returns (address) {
+        return s.wearableDiamond;
     }
 }

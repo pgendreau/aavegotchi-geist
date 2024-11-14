@@ -65,11 +65,11 @@ export default {
   },
   networks: {
     hardhat: {
-      // forking: {
-      //   url: process.env.MATIC_URL,
-      //   timeout: 12000000,
-      //   // blockNumber: 31480850,
-      // },
+      forking: {
+        url: process.env.BASE_SEPOLIA_URL,
+        timeout: 12000000,
+        // blockNumber: 31480850,
+      },
       blockGasLimit: 20000000,
       timeout: 120000,
       gas: "auto",
@@ -107,10 +107,10 @@ export default {
       url: process.env.GEIST_URL,
       accounts: [process.env.SECRET],
     },
-    // "base-sepolia": {
-    //   url: process.env.BASE_SEPOLIA_URL,
-    //   accounts: [process.env.SECRET],
-    // },
+    baseSepolia: {
+      url: process.env.BASE_SEPOLIA_URL,
+      accounts: [process.env.SECRET],
+    },
 
     // gorli: {
     //   url: process.env.GORLI,
