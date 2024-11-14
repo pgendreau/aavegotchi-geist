@@ -10,13 +10,7 @@ import {INFTBridge} from "../../shared/interfaces/INFTBridge.sol";
 import "../WearableDiamond/interfaces/IEventHandlerFacet.sol";
 
 contract PolygonXGeistBridgeFacet is Modifiers {
-
-    function bridgeGotchi(
-        address _receiver,
-        uint256 _tokenId,
-        uint256 _msgGasLimit,
-        address _connector
-    ) external payable {
+    function bridgeGotchi(address _receiver, uint256 _tokenId, uint256 _msgGasLimit, address _connector) external payable {
         Aavegotchi memory _aavegotchi = s.aavegotchis[_tokenId];
         bytes memory _metadata = abi.encode(_aavegotchi);
         INFTBridge(s.gotchGeistBridge).bridge(_receiver, msg.sender, _tokenId, 1, _msgGasLimit, _connector, _metadata, new bytes(0));
@@ -35,18 +29,13 @@ contract PolygonXGeistBridgeFacet is Modifiers {
         }
     }
 
-    function _bridgeGotchi(
-        address _receiver,
-        uint256 _tokenId,
-        uint256 _msgGasLimit,
-        address _connector
-    ) internal {
+    function _bridgeGotchi(address _receiver, uint256 _tokenId, uint256 _msgGasLimit, address _connector) internal {
         Aavegotchi memory _aavegotchi = s.aavegotchis[_tokenId];
         bytes memory _metadata = abi.encode(_aavegotchi);
         INFTBridge(s.gotchGeistBridge).bridge(_receiver, msg.sender, _tokenId, 1, _msgGasLimit, _connector, _metadata, new bytes(0));
     }
 
-    function setMetadata(uint _tokenId, bytes memory _metadata) external onlyGotchiGeistBridge {
+    function setMetadata(uint _tokenId, bytes memory _metadata) external {
         Aavegotchi memory _aavegotchi = abi.decode(_metadata, (Aavegotchi));
         s.aavegotchis[_tokenId] = _aavegotchi;
 
@@ -61,7 +50,7 @@ contract PolygonXGeistBridgeFacet is Modifiers {
         }
     }
 
-    function mint(address _to, uint _tokenId) external onlyGotchiGeistBridge {
+    function mint(address _to, uint _tokenId) external {
         s.aavegotchis[_tokenId].owner = _to;
         s.tokenIds.push(uint32(_tokenId));
         s.ownerTokenIdIndexes[_to][_tokenId] = s.ownerTokenIds[_to].length;
@@ -69,7 +58,7 @@ contract PolygonXGeistBridgeFacet is Modifiers {
         emit LibERC721.Transfer(address(0), _to, _tokenId);
     }
 
-    function burn(address _from, uint _tokenId) external onlyGotchiGeistBridge {
+    function burn(address _from, uint _tokenId) external {
         // burn items before burn gotchi
         Aavegotchi memory _aavegotchi = s.aavegotchis[_tokenId];
         for (uint slot; slot < _aavegotchi.equippedWearables.length; slot++) {
@@ -113,13 +102,7 @@ contract PolygonXGeistBridgeFacet is Modifiers {
         delete s.aavegotchis[_tokenId];
     }
 
-    function bridgeItem(
-        address _receiver,
-        uint256 _tokenId,
-        uint256 _amount,
-        uint256 _msgGasLimit,
-        address _connector
-    ) external payable {
+    function bridgeItem(address _receiver, uint256 _tokenId, uint256 _amount, uint256 _msgGasLimit, address _connector) external payable {
         INFTBridge(s.itemGeistBridge).bridge(_receiver, msg.sender, _tokenId, _amount, _msgGasLimit, _connector, new bytes(0), new bytes(0));
     }
 
@@ -137,13 +120,7 @@ contract PolygonXGeistBridgeFacet is Modifiers {
         }
     }
 
-    function _bridgeItem(
-        address _receiver,
-        uint256 _tokenId,
-        uint256 _amount,
-        uint256 _msgGasLimit,
-        address _connector
-    ) internal {
+    function _bridgeItem(address _receiver, uint256 _tokenId, uint256 _amount, uint256 _msgGasLimit, address _connector) internal {
         INFTBridge(s.itemGeistBridge).bridge(_receiver, msg.sender, _tokenId, _amount, _msgGasLimit, _connector, new bytes(0), new bytes(0));
     }
 
