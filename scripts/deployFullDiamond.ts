@@ -111,9 +111,7 @@ export interface DeploymentConfig {
 const CONFIG_PATH = path.join(__dirname, "../deployment-config.json");
 
 // Load the deployment configuration specific to the current chainId
-function loadDeploymentConfig(): DeploymentConfig {
-  const chainId = network.config.chainId as number;
-
+function loadDeploymentConfig(chainId: number): DeploymentConfig {
   try {
     const data = fs.readFileSync(CONFIG_PATH, "utf8");
     const allConfigs = JSON.parse(data);
@@ -663,8 +661,19 @@ export async function deployFullDiamond() {
     throw Error("No network settings for " + network.name);
   }
 
+  // Get deployed wGHST address
+  let chainId = network.config.chainId as number;
+
+  if (network.name === "polter") {
+    chainId = 631571;
+  }
+
   // Load existing deployment configuration
-  const deploymentConfig = loadDeploymentConfig();
+  const deploymentConfig = loadDeploymentConfig(chainId);
+
+  if (deploymentConfig.chainId === undefined) {
+    deploymentConfig.chainId = chainId;
+  }
 
   // Variables (Update based on your network configurations)
   const ghstStakingDiamondAddress =
@@ -700,8 +709,6 @@ export async function deployFullDiamond() {
   const pixelCraft = ownerAddress; // 'todo'
   const itemManagers = [ownerAddress, xpRelayerAddress]; // 'todo'
 
-  // Get deployed wGHST address
-  const chainId = network.config.chainId as number;
   const addresses = networkAddresses[chainId];
   const wghstContractAddress = addresses.wghst;
 

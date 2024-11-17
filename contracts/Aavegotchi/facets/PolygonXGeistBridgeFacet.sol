@@ -35,6 +35,7 @@ contract PolygonXGeistBridgeFacet is Modifiers {
         INFTBridge(s.gotchGeistBridge).bridge(_receiver, msg.sender, _tokenId, 1, _msgGasLimit, _connector, _metadata, new bytes(0));
     }
 
+    //todo: add back onlyGeistBridge
     function setMetadata(uint _tokenId, bytes memory _metadata) external {
         Aavegotchi memory _aavegotchi = abi.decode(_metadata, (Aavegotchi));
         s.aavegotchis[_tokenId] = _aavegotchi;
@@ -50,6 +51,7 @@ contract PolygonXGeistBridgeFacet is Modifiers {
         }
     }
 
+    //todo: add back onlyGeistBridge
     function mint(address _to, uint _tokenId) external {
         s.aavegotchis[_tokenId].owner = _to;
         s.tokenIds.push(uint32(_tokenId));
@@ -58,6 +60,7 @@ contract PolygonXGeistBridgeFacet is Modifiers {
         emit LibERC721.Transfer(address(0), _to, _tokenId);
     }
 
+    //todo: add back onlyGeistBridge
     function burn(address _from, uint _tokenId) external {
         // burn items before burn gotchi
         Aavegotchi memory _aavegotchi = s.aavegotchis[_tokenId];
