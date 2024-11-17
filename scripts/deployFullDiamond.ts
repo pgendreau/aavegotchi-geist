@@ -1,6 +1,8 @@
 /* global ethers hre */
 
-import { ethers, network } from "hardhat";
+import { ethers, network, run } from "hardhat";
+import * as fs from "fs";
+import * as path from "path";
 
 import {
   getItemTypes,
@@ -62,7 +64,6 @@ import {
 } from "../svgs/wearables-sides";
 
 import { aavegotchiSvgs } from "../svgs/aavegotchi-typescript";
-import { run } from "hardhat";
 import { allSideViewDimensions } from "../svgs/sideViewDimensions";
 import { convertSideDimensionsToTaskFormat } from "../tasks/updateItemSideDimensions";
 import { allExceptions } from "../svgs/allExceptions";
@@ -70,18 +71,99 @@ import { convertExceptionsToTaskFormat } from "../tasks/updateWearableExceptions
 import { xpRelayerAddress } from "./helperFunctions";
 
 import { deploy, deployWithoutInit } from "../js/diamond-util/src/index";
-import { deployWGHST } from "./deployWGHST";
 
 import { getCollaterals } from "../data/airdrops/collaterals/collateralTypes";
 import { getCollaterals as getCollateralsHaunt2 } from "../data/airdrops/collaterals/collateralTypesHaunt2";
-import { ghstAddress } from "../helpers/constants";
+import { ghstAddress, networkAddresses } from "../helpers/constants";
+
+// Import fs and path for file operations
+import * as os from "os";
+
+// Define the interface for the deployment configuration
+export interface DeploymentConfig {
+  chainId: number;
+  aavegotchiDiamond: string | undefined;
+  wearableDiamond: string | undefined;
+  forgeDiamond: string | undefined;
+  haunts: Record<number, boolean>;
+  itemTypes: Record<number, boolean>;
+  wearableSetsAdded: boolean;
+  sideViewDimensionsAdded: boolean;
+  sideViewExceptionsAdded: boolean;
+  forgePropertiesSet: boolean;
+  forgeDiamondSet: boolean;
+  svgsUploaded: {
+    [key: string]: {
+      [id: string]: boolean;
+    };
+  };
+  erc721CategoriesAdded: boolean;
+  erc1155CategoriesAdded: boolean;
+  realmAddressSet: boolean;
+  wearableSets: Record<string, boolean>;
+  sideViewDimensions: Record<number, boolean>;
+  sideViewExceptions: Record<string, boolean>;
+  [key: string]: any; //other addresses
+  itemManagers: string[] | undefined;
+}
+
+// Define the path to the deployment configuration file
+const CONFIG_PATH = path.join(__dirname, "../deployment-config.json");
+
+// Load the deployment configuration specific to the current chainId
+function loadDeploymentConfig(): DeploymentConfig {
+  const chainId = network.config.chainId as number;
+
+  try {
+    const data = fs.readFileSync(CONFIG_PATH, "utf8");
+    const allConfigs = JSON.parse(data);
+    console.log("Loading deployment config for chainId", chainId);
+    return allConfigs[chainId] || { chainId };
+  } catch (error) {
+    console.log("No existing deployment config found for chainId", chainId);
+    return {
+      chainId: chainId,
+      aavegotchiDiamond: undefined,
+      wearableDiamond: undefined,
+      forgeDiamond: undefined,
+      haunts: {},
+      itemTypes: {},
+      wearableSets: {},
+      sideViewDimensions: {},
+      sideViewExceptions: {},
+      itemManagers: undefined,
+      erc721CategoriesAdded: false,
+      erc1155CategoriesAdded: false,
+      realmAddressSet: false,
+      svgsUploaded: {},
+      sideViewDimensionsAdded: false,
+      sideViewExceptionsAdded: false,
+      forgePropertiesSet: false,
+      forgeDiamondSet: false,
+      wearableSetsAdded: false,
+    };
+  }
+}
+
+// Save the deployment configuration specific to the current chainId
+function saveDeploymentConfig(config: DeploymentConfig) {
+  let allConfigs: Record<number, DeploymentConfig> = {};
+  try {
+    const data = fs.readFileSync(CONFIG_PATH, "utf8");
+    allConfigs = JSON.parse(data);
+  } catch (error) {
+    // No existing configs; start fresh
+  }
+  allConfigs[config.chainId] = config;
+  fs.writeFileSync(CONFIG_PATH, JSON.stringify(allConfigs, null, 2) + os.EOL);
+}
 
 function addCommas(nStr: any) {
   nStr += "";
   const x = nStr.split(".");
   let x1 = x[0];
   const x2 = x.length > 1 ? "." + x[1] : "";
-  var rgx = /(\d+)(\d{3})/;
+  const rgx = /(\d+)(\d{3})/;
   while (rgx.test(x1)) {
     x1 = x1.replace(rgx, "$1" + "," + "$2");
   }
@@ -101,8 +183,8 @@ async function deployForgeDiamond(
   aavegotchiDiamondAddress: string,
   wearableDiamondAddress: string
 ) {
-  // forge diamond
-  let [forgeFacet, forgeDaoFacet, forgeTokenFacet, forgeVrfFacet] =
+  // Deploy forge facets
+  const [forgeFacet, forgeDaoFacet, forgeTokenFacet, forgeVrfFacet] =
     await deployFacets(
       "contracts/Aavegotchi/ForgeDiamond/facets/ForgeFacet.sol:ForgeFacet",
       "contracts/Aavegotchi/ForgeDiamond/facets/ForgeDAOFacet.sol:ForgeDAOFacet",
@@ -149,7 +231,7 @@ async function createHauntWithCollaterals(
   console.log("Haunt created:" + strDisplay(receipt.gasUsed));
   totalGasUsed = totalGasUsed.add(receipt.gasUsed);
 
-  // add collateral info for haunt
+  // Add collateral info for haunt
   console.log("Adding Collateral Types", collaterals);
 
   tx = await daoFacet.addCollateralTypes(hauntId, collaterals);
@@ -160,42 +242,56 @@ async function createHauntWithCollaterals(
 
 async function addItemTypes(
   daoFacet: DAOFacet,
-  gasLimit: BigNumberish,
-  totalGasUsed: BigNumber
+  totalGasUsed: BigNumber,
+  deploymentConfig: DeploymentConfig
 ) {
-  // add item types
+  // Initialize itemTypes in config if not exists
+  deploymentConfig.itemTypes = deploymentConfig.itemTypes || {};
 
-  //convert all itemtypes to itemTypeNew
-  let itemTypes2: ItemTypeInputNew[] = [];
+  console.log("Adding item types");
+
+  // Add item types
+  const itemTypes2: ItemTypeInputNew[] = [];
   for (let i = 0; i < allItemTypes.length; i++) {
+    // Skip if this item type is already added
+    if (deploymentConfig.itemTypes[Number(allItemTypes[i].svgId)]) {
+      console.log(`Item type ${allItemTypes[i].svgId} already added, skipping`);
+      continue;
+    }
     itemTypes2.push(toItemTypeInputNew(allItemTypes[i]));
   }
+
+  if (itemTypes2.length === 0) {
+    console.log("All item types already added.");
+    return;
+  }
+
   const itemTypes = getItemTypes(itemTypes2, ethers);
   console.log("Adding", itemTypes2.length, "Item Types");
-  let batchSize = 20;
-  let totalItems = itemTypes.length;
-  let totalBatches = Math.ceil(totalItems / batchSize);
+  const batchSize = 20;
+  const totalItems = itemTypes.length;
+  const totalBatches = Math.ceil(totalItems / batchSize);
 
   for (let i = 0; i < totalBatches; i++) {
     const start = batchSize * i;
     const end = start + batchSize;
-    const batch = itemTypes.slice(start, end); // Get current batch
+    const batch = itemTypes.slice(start, end);
 
-    let tx = await daoFacet.addItemTypes(batch, { gasLimit: gasLimit });
-    let receipt = await tx.wait();
-
-    // const itemIds = [];
-    // const quantities = [];
-    // batch.forEach((itemType) => {
-    //   itemIds.push(itemType.svgId);
-    //   quantities.push(itemType.maxQuantity);
-    // });
-    // tx = await daoFacet.mintItems(ownerAddress, itemIds, quantities , { gasLimit: gasLimit });
-    // receipt = await tx.wait();
+    const tx = await daoFacet.addItemTypes(batch);
+    const receipt = await tx.wait();
 
     if (!receipt.status) {
       throw Error(`Error:: ${tx.hash}`);
     }
+
+    // Mark these items as added in the config
+    batch.forEach((item, index) => {
+      const originalItem = itemTypes2[start + index];
+      deploymentConfig.itemTypes![Number(originalItem.svgId)] = true;
+    });
+
+    // Save after each batch
+    saveDeploymentConfig(deploymentConfig);
 
     console.log(
       `Adding Item Types Batch ${
@@ -209,76 +305,154 @@ async function addItemTypes(
 
 async function addWearableSets(
   daoFacet: DAOFacet,
-  gasLimit: BigNumberish,
-  totalGasUsed: BigNumber
+  totalGasUsed: BigNumber,
+  deploymentConfig: DeploymentConfig
 ) {
-  // add wearable types sets
-  console.log("Adding ", wearableSetArrays.length, "Wearable Sets");
+  // Initialize wearableSets in config if not exists
+  deploymentConfig.wearableSets = deploymentConfig.wearableSets || {};
+
+  // Filter only unprocessed wearable sets
+  const setsToAdd = wearableSetArrays.filter(
+    (set) => !deploymentConfig.wearableSets![set.name]
+  );
+
+  if (setsToAdd.length === 0) {
+    console.log("All wearable sets already added.");
+    return;
+  }
+
+  // Add wearable sets in batches
+  console.log("Adding", setsToAdd.length, "Wearable Sets");
   const batchSize = 50;
-  const totalBatches = Math.ceil(wearableSetArrays.length / batchSize);
+  const totalBatches = Math.ceil(setsToAdd.length / batchSize);
 
   for (let i = 0; i < totalBatches; i++) {
     const start = batchSize * i;
     const end = start + batchSize;
-    const batch = wearableSetArrays.slice(start, end);
+    const batch = setsToAdd.slice(start, end);
 
-    const tx = await daoFacet.addWearableSets(batch, { gasLimit: gasLimit });
-
+    const tx = await daoFacet.addWearableSets(batch);
     const receipt = await tx.wait();
-    console.log(
-      `Adding Wearable Sets Batch ${
-        i + 1
-      } of ${totalBatches}, gas used:: ${strDisplay(receipt.gasUsed)}`
-    );
 
     if (!receipt.status) {
       throw Error(`Error:: ${tx.hash}`);
     }
 
+    // Mark these sets as added in the config
+    batch.forEach((set) => {
+      deploymentConfig.wearableSets![set.name] = true;
+    });
+
+    // Save after each batch
+    saveDeploymentConfig(deploymentConfig);
+
+    console.log(
+      `Adding Wearable Sets Batch ${
+        i + 1
+      } of ${totalBatches}, gas used:: ${strDisplay(receipt.gasUsed)}`
+    );
     totalGasUsed = totalGasUsed.add(receipt.gasUsed);
   }
 }
 
-async function addSideViewDimensions(aavegotchiDiamondAddress: string) {
-  //add sideview dimensions in batches of 200
-  const batchSize = 200;
-  console.log("adding", allSideViewDimensions.length, "sideviews");
-  const sliceStep = Math.ceil(allSideViewDimensions.length / batchSize);
+async function addSideViewDimensions(
+  aavegotchiDiamondAddress: string,
+  deploymentConfig: DeploymentConfig
+) {
+  // Initialize sideViewDimensions in config if not exists
+  deploymentConfig.sideViewDimensions =
+    deploymentConfig.sideViewDimensions || {};
 
-  for (let i = 0; i < sliceStep; i++) {
+  // Filter only unprocessed dimensions
+  const dimensionsToAdd = allSideViewDimensions.filter(
+    (dim) => !deploymentConfig.sideViewDimensions![Number(dim.itemId)]
+  );
+
+  if (dimensionsToAdd.length === 0) {
+    console.log("All side view dimensions already added.");
+    return;
+  }
+
+  // Add side view dimensions in batches
+  const batchSize = 200;
+  console.log("adding", dimensionsToAdd.length, "sideviews");
+  const totalBatches = Math.ceil(dimensionsToAdd.length / batchSize);
+
+  for (let i = 0; i < totalBatches; i++) {
     const start = batchSize * i;
-    const end = start + batchSize;
-    const batch = allSideViewDimensions.slice(start, end);
-    console.log(`Adding Sideview Dimensions (${i + 1} / ${sliceStep})`);
+    const end = Math.min(start + batchSize, dimensionsToAdd.length);
+    const batch = dimensionsToAdd.slice(start, end);
+
+    console.log(`Adding Sideview Dimensions (${i + 1} / ${totalBatches})`);
     await run(
       "updateItemSideDimensions",
       convertSideDimensionsToTaskFormat(batch, aavegotchiDiamondAddress)
     );
+
+    // Mark these dimensions as added in the config
+    batch.forEach((dim) => {
+      deploymentConfig.sideViewDimensions![Number(dim.itemId)] = true;
+    });
+
+    // Save after each batch
+    saveDeploymentConfig(deploymentConfig);
   }
 }
 
-async function addSideviewExceptions(aavegotchiDiamondAddress: string) {
-  //add sideview exceptions in batches of 100
+async function addSideviewExceptions(
+  aavegotchiDiamondAddress: string,
+  deploymentConfig: DeploymentConfig
+) {
+  // Initialize sideViewExceptions in config if not exists
+  deploymentConfig.sideViewExceptions =
+    deploymentConfig.sideViewExceptions || {};
+
+  // Filter only unprocessed exceptions
+  const exceptionsToAdd = allExceptions.filter(
+    (exception) =>
+      !deploymentConfig.sideViewExceptions![
+        `${exception.slotPosition}_${exception.itemId}`
+      ]
+  );
+
+  if (exceptionsToAdd.length === 0) {
+    console.log("All side view exceptions already added.");
+    return;
+  }
+
+  // Add side view exceptions in batches
   const batchSize = 100;
-  console.log("adding", allExceptions.length, "exceptions");
-  const sliceStep = Math.ceil(allExceptions.length / batchSize);
+  console.log("adding", exceptionsToAdd.length, "exceptions");
+  const totalBatches = Math.ceil(exceptionsToAdd.length / batchSize);
 
-  for (let i = 0; i < sliceStep; i++) {
-    const start = sliceStep * i;
-    const end = start + sliceStep;
-    const slice = allExceptions.slice(
-      start,
-      Math.min(end, allExceptions.length)
-    );
-    console.log(`Adding Sideview Exceptions (${i + 1} / ${sliceStep}) `);
-    const tx = await run(
+  for (let i = 0; i < totalBatches; i++) {
+    const start = batchSize * i;
+    const end = Math.min(start + batchSize, exceptionsToAdd.length);
+    const batch = exceptionsToAdd.slice(start, end);
+
+    console.log(`Adding Sideview Exceptions (${i + 1} / ${totalBatches})`);
+    await run(
       "updateWearableExceptions",
-      convertExceptionsToTaskFormat(slice, aavegotchiDiamondAddress)
+      convertExceptionsToTaskFormat(batch, aavegotchiDiamondAddress)
     );
+
+    // Mark these exceptions as added in the config
+    batch.forEach((exception) => {
+      deploymentConfig.sideViewExceptions![
+        `${exception.slotPosition}_${exception.itemId}`
+      ] = true;
+    });
+
+    // Save after each batch
+    saveDeploymentConfig(deploymentConfig);
   }
 }
 
-async function uploadAllSvgs(svgFacet: SvgFacet, totalGasUsed: BigNumber) {
+async function uploadAllSvgs(
+  svgFacet: SvgFacet,
+  totalGasUsed: BigNumber,
+  deploymentConfig: DeploymentConfig
+) {
   console.log("Upload SVGs");
 
   const { eyeShapeSvgs } = require("../svgs/eyeShapes.js");
@@ -292,102 +466,49 @@ async function uploadAllSvgs(svgFacet: SvgFacet, totalGasUsed: BigNumber) {
     '<g class="gotchi-collateral"><path d="M41 14v1h-1v4h1v1h1v1h1v-7z" fill="#7e18f8"/></g>',
   ];
 
-  console.log("uploading portal svgs");
-  await uploadSvgs(svgFacet, openedPortals, "portal-open", ethers);
-  await uploadSvgs(svgFacet, closedPortals, "portal-closed", ethers);
-
-  console.log("uploading aavegotchiSvgs");
-  await uploadSvgs(svgFacet, aavegotchiSvgs, "aavegotchi", ethers);
-  console.log("uploading collaterals");
-  await uploadSvgs(svgFacet, collateralsSvgs, "collaterals", ethers);
-  console.log("uploading eyeShapes");
-  await uploadSvgs(svgFacet, eyeShapeSvgs, "eyeShapes", ethers);
-  console.log("uploading aavegotchiSideSvgsLeft");
-  await uploadSvgs(
-    svgFacet,
-    aavegotchiSideSvgs.left,
-    "aavegotchi-left",
-    ethers
-  );
-  console.log("uploading aavegotchiSideSvgsRight");
-  await uploadSvgs(
-    svgFacet,
-    aavegotchiSideSvgs.right,
-    "aavegotchi-right",
-    ethers
-  );
-  console.log("uploading aavegotchiSideSvgsBack");
-  await uploadSvgs(
-    svgFacet,
-    aavegotchiSideSvgs.back,
-    "aavegotchi-back",
-    ethers
-  );
-  console.log("uploading collateral-side svgs");
-  await uploadSvgs(svgFacet, collateralsLeftSvgs, "collaterals-left", ethers);
-  await uploadSvgs(svgFacet, collateralsRightSvgs, "collaterals-right", ethers);
-  await uploadSvgs(svgFacet, [""], "collaterals-back", ethers);
-  await uploadSvgs(svgFacet, eyeShapesLeftSvgs, "eyeShapes-left", ethers);
-  await uploadSvgs(svgFacet, eyeShapesRightSvgs, "eyeShapes-right", ethers);
-  await uploadSvgs(
-    svgFacet,
-    Array(eyeShapeSvgs.length).fill(""),
-    "eyeShapes-back",
-    ethers
-  );
+  deploymentConfig.svgsUploaded = deploymentConfig.svgsUploaded || {};
 
   const { sleeves, wearables } = getWearables();
-
-  const svgsArray: string[] = wearables;
   const sleeveSvgsArray: SleeveObject[] = sleeves;
 
-  console.log("Uploading wearables");
-  await uploadSvgs(svgFacet, svgsArray, "wearables", ethers);
-  console.log("Uploading sleeves");
-  await uploadSvgs(
-    svgFacet,
-    sleeveSvgsArray.map((value) => value.svg),
-    "sleeves",
-    ethers
-  );
+  const svgGroups = {
+    "portal-open": openedPortals,
+    "portal-closed": closedPortals,
+    aavegotchi: aavegotchiSvgs,
+    collaterals: collateralsSvgs,
+    eyeShapes: eyeShapeSvgs,
+    "aavegotchi-left": aavegotchiSideSvgs.left,
+    "aavegotchi-right": aavegotchiSideSvgs.right,
+    "aavegotchi-back": aavegotchiSideSvgs.back,
+    "collaterals-left": collateralsLeftSvgs,
+    "collaterals-right": collateralsRightSvgs,
+    "eyeShapes-left": eyeShapesLeftSvgs,
+    "eyeShapes-right": eyeShapesRightSvgs,
+    wearables: wearables,
+    sleeves: sleeveSvgsArray.map((value) => value.svg),
+    "wearables-left": wearablesLeftSvgs,
+    "wearables-right": wearablesRightSvgs,
+    "wearables-back": wearablesBackSvgs,
+    "sleeves-left": wearablesLeftSleeveSvgs,
+    "sleeves-right": wearablesRightSleeveSvgs,
+    "sleeves-back": wearablesBackSleeveSvgs,
+  };
 
-  //uploading sideviews
+  for (const svgGroup of Object.entries(svgGroups)) {
+    const svg = svgGroup[1];
+    const svgType = svgGroup[0];
 
-  console.log("Uploading wearablesleft");
-  await uploadSvgs(
-    svgFacet,
-    wearablesLeftSvgs as string[],
-    "wearables-left",
-    ethers
-  );
-  console.log("Uploading wearablesRight");
-  await uploadSvgs(
-    svgFacet,
-    wearablesRightSvgs as string[],
-    "wearables-right",
-    ethers
-  );
-  console.log("Uploading wearablesBack");
-  await uploadSvgs(
-    svgFacet,
-    wearablesBackSvgs as string[],
-    "wearables-back",
-    ethers
-  );
-  console.log("Uploading wearablesLeftSleeve");
-  await uploadSvgs(svgFacet, wearablesLeftSleeveSvgs, "sleeves-left", ethers);
-  console.log("Uploading wearablesRightSleeve");
-  await uploadSvgs(svgFacet, wearablesRightSleeveSvgs, "sleeves-right", ethers);
-  console.log("Uploading wearablesBackSleeve");
-  await uploadSvgs(svgFacet, wearablesBackSleeveSvgs, "sleeves-back", ethers);
+    await uploadSvgs(svgFacet, svg, svgType, ethers, deploymentConfig);
+  }
+
   console.log("Upload Done");
 
   interface SleeveInput {
     sleeveId: BigNumberish;
     wearableId: BigNumberish;
   }
-  let sleevesSvgId: number = 0; // TODO
-  let sleevesInput: SleeveInput[] = [];
+  let sleevesSvgId = 0;
+  const sleevesInput: SleeveInput[] = [];
   for (const sleeve of sleeveSvgsArray) {
     sleevesInput.push({
       sleeveId: sleevesSvgId,
@@ -482,7 +603,7 @@ async function addERC1155Categories(
   const coresCategory = 11;
   const alloyIds = [offset];
   const essenceIds = [offset + 1];
-  const geodeIds = []; //[offset + 2, offset +3, offset+4, offset+5, offset+6, offset+7];
+  const geodeIds = [];
   for (let i = offset + 2; i < offset + 8; i++) {
     geodeIds.push(i);
   }
@@ -542,17 +663,28 @@ export async function deployFullDiamond() {
     throw Error("No network settings for " + network.name);
   }
 
-  //amoy
+  // Load existing deployment configuration
+  const deploymentConfig = loadDeploymentConfig();
+
+  // Variables (Update based on your network configurations)
   const ghstStakingDiamondAddress =
+    deploymentConfig.ghstStakingDiamondAddress ||
     "0xae83d5fc564Ef58224e934ba4Df72a100d5082a0";
-  const realmDiamondAddress = "0x5a4faEb79951bAAa0866B72fD6517E693c8E4620";
+  const realmDiamondAddress =
+    deploymentConfig.realmDiamondAddress ||
+    "0x5a4faEb79951bAAa0866B72fD6517E693c8E4620";
   const installationDiamondAddress =
+    deploymentConfig.installationDiamondAddress ||
     "0x514b7c55FB3DFf3533B58D85CD25Ba04bb30612D";
-  const tileDiamondAddress = "0xCa6F4Ef19a1Beb9BeF12f64b395087E5680bcB22";
+  const tileDiamondAddress =
+    deploymentConfig.tileDiamondAddress ||
+    "0xCa6F4Ef19a1Beb9BeF12f64b395087E5680bcB22";
   const fakeGotchiArtDiamondAddress =
-    "0x330088c3372f4F78cF023DF16E1e1564109191dc"; //todo
+    deploymentConfig.fakeGotchiArtDiamondAddress ||
+    "0x330088c3372f4F78cF023DF16E1e1564109191dc";
   const fakeGotchiCardDiamondAddress =
-    "0x9E282FE4a0be6A0C4B9f7d9fEF10547da35c52EA"; //todo
+    deploymentConfig.fakeGotchiCardDiamondAddress ||
+    "0x9E282FE4a0be6A0C4B9f7d9fEF10547da35c52EA";
 
   const name = "Aavegotchi";
   const symbol = "GOTCHI";
@@ -562,14 +694,16 @@ export async function deployFullDiamond() {
 
   console.log("Owner: " + ownerAddress);
 
-  const wghst = await deployWGHST();
-  const wghstContractAddress = wghst.address;
-
   const dao = ownerAddress; // 'todo'
   const daoTreasury = ownerAddress;
   const rarityFarming = ownerAddress; // 'todo'
   const pixelCraft = ownerAddress; // 'todo'
   const itemManagers = [ownerAddress, xpRelayerAddress]; // 'todo'
+
+  // Get deployed wGHST address
+  const chainId = network.config.chainId as number;
+  const addresses = networkAddresses[chainId];
+  const wghstContractAddress = addresses.wghst;
 
   const initArgs = [
     [
@@ -583,7 +717,6 @@ export async function deployFullDiamond() {
     ],
   ];
 
-  const gasLimit = 12300000;
   let totalGasUsed = ethers.BigNumber.from("0");
   let tx;
   let receipt;
@@ -606,289 +739,452 @@ export async function deployFullDiamond() {
     }
     return instances;
   }
-  let [
-    bridgeFacet,
-    aavegotchiFacet,
-    aavegotchiGameFacet,
-    svgFacet,
-    itemsFacet,
-    itemsTransferFacet,
-    collateralFacet,
-    daoFacet,
-    vrfFacet,
-    shopFacet,
-    metaTransactionsFacet,
-    erc1155MarketplaceFacet,
-    erc721MarketplaceFacet,
-    escrowFacet,
-    gotchiLendingFacet,
-    lendingGetterAndSetterFacet,
-    marketplaceGetterFacet,
-    svgViewsFacet,
-    wearableSetsFacet,
-    whitelistFacet,
-    peripheryFacet,
-    merkleDropFacet,
-    erc721BuyorderFacet,
-    itemsRolesRegistryFacet,
-    voucherMigrationFacet,
-    erc1155BuyOrderFacet,
-    polygonXGeistBridgeFacet,
-  ] = (await deployFacets(
-    "contracts/Aavegotchi/facets/BridgeFacet.sol:BridgeFacet",
-    "contracts/Aavegotchi/facets/AavegotchiFacet.sol:AavegotchiFacet",
-    "AavegotchiGameFacet",
-    "SvgFacet",
-    "contracts/Aavegotchi/facets/ItemsFacet.sol:ItemsFacet",
-    "ItemsTransferFacet",
-    "CollateralFacet",
+
+  async function deployAavegotchiDiamond() {
+    let aavegotchiDiamond: any;
+    if (!deploymentConfig.aavegotchiDiamond) {
+      // Deploy facets
+      let [
+        bridgeFacet,
+        aavegotchiFacet,
+        aavegotchiGameFacet,
+        svgFacet,
+        itemsFacet,
+        itemsTransferFacet,
+        collateralFacet,
+        daoFacet,
+        vrfFacet,
+        shopFacet,
+        metaTransactionsFacet,
+        erc1155MarketplaceFacet,
+        erc721MarketplaceFacet,
+        escrowFacet,
+        gotchiLendingFacet,
+        lendingGetterAndSetterFacet,
+        marketplaceGetterFacet,
+        svgViewsFacet,
+        wearableSetsFacet,
+        whitelistFacet,
+        peripheryFacet,
+        merkleDropFacet,
+        erc721BuyorderFacet,
+        itemsRolesRegistryFacet,
+        voucherMigrationFacet,
+        erc1155BuyOrderFacet,
+        polygonXGeistBridgeFacet,
+      ] = (await deployFacets(
+        "contracts/Aavegotchi/facets/BridgeFacet.sol:BridgeFacet",
+        "contracts/Aavegotchi/facets/AavegotchiFacet.sol:AavegotchiFacet",
+        "AavegotchiGameFacet",
+        "SvgFacet",
+        "contracts/Aavegotchi/facets/ItemsFacet.sol:ItemsFacet",
+        "ItemsTransferFacet",
+        "CollateralFacet",
+        "DAOFacet",
+        "VrfFacet",
+        "ShopFacet",
+        "MetaTransactionsFacet",
+        "ERC1155MarketplaceFacet",
+        "ERC721MarketplaceFacet",
+        "EscrowFacet",
+        "GotchiLendingFacet",
+        "LendingGetterAndSetterFacet",
+        "MarketplaceGetterFacet",
+        "SvgViewsFacet",
+        "WearableSetsFacet",
+        "WhitelistFacet",
+        "PeripheryFacet",
+        "MerkleDropFacet",
+        "ERC721BuyOrderFacet",
+        "ItemsRolesRegistryFacet",
+        "VoucherMigrationFacet",
+        "ERC1155BuyOrderFacet",
+        "PolygonXGeistBridgeFacet"
+      )) as [
+        BridgeFacet,
+        AavegotchiFacet,
+        AavegotchiGameFacet,
+        SvgFacet,
+        ItemsFacet,
+        ItemsTransferFacet,
+        CollateralFacet,
+        DAOFacet,
+        VrfFacet,
+        ShopFacet,
+        MetaTransactionsFacet,
+        ERC1155MarketplaceFacet,
+        ERC721MarketplaceFacet,
+        EscrowFacet,
+        GotchiLendingFacet,
+        LendingGetterAndSetterFacet,
+        MarketplaceGetterFacet,
+        SvgViewsFacet,
+        WearableSetsFacet,
+        WhitelistFacet,
+        PeripheryFacet,
+        MerkleDropFacet,
+        ERC721BuyOrderFacet,
+        ItemsRolesRegistryFacet,
+        VoucherMigrationFacet,
+        ERC1155BuyOrderFacet,
+        PolygonXGeistBridgeFacet
+      ];
+
+      // Deploy Aavegotchi Diamond
+      aavegotchiDiamond = await deploy({
+        diamondName: "AavegotchiDiamond",
+        initDiamond: "contracts/Aavegotchi/InitDiamond.sol:InitDiamond",
+        facets: [
+          ["BridgeFacet", bridgeFacet],
+          ["AavegotchiFacet", aavegotchiFacet],
+          ["AavegotchiGameFacet", aavegotchiGameFacet],
+          ["SvgFacet", svgFacet],
+          ["ItemsFacet", itemsFacet],
+          ["ItemsTransferFacet", itemsTransferFacet],
+          ["CollateralFacet", collateralFacet],
+          ["DAOFacet", daoFacet],
+          ["VrfFacet", vrfFacet],
+          ["ShopFacet", shopFacet],
+          ["MetaTransactionsFacet", metaTransactionsFacet],
+          ["ERC1155MarketplaceFacet", erc1155MarketplaceFacet],
+          ["ERC721MarketplaceFacet", erc721MarketplaceFacet],
+          ["EscrowFacet", escrowFacet],
+          ["GotchiLendingFacet", gotchiLendingFacet],
+          ["LendingGetterAndSetterFacet", lendingGetterAndSetterFacet],
+          ["MarketplaceGetterFacet", marketplaceGetterFacet],
+          ["SvgViewsFacet", svgViewsFacet],
+          ["WearableSetsFacet", wearableSetsFacet],
+          ["WhitelistFacet", whitelistFacet],
+          ["PeripheryFacet", peripheryFacet],
+          ["MerkleDropFacet", merkleDropFacet],
+          ["ERC721BuyOrderFacet", erc721BuyorderFacet],
+          ["ItemsRolesRegistryFacet", itemsRolesRegistryFacet],
+          ["VoucherMigrationFacet", voucherMigrationFacet],
+          ["ERC1155BuyOrderFacet", erc1155BuyOrderFacet],
+          ["PolygonXGeistBridgeFacet", polygonXGeistBridgeFacet],
+        ],
+        owner: ownerAddress,
+        args: initArgs,
+      });
+
+      console.log("Aavegotchi diamond address:" + aavegotchiDiamond.address);
+
+      tx = aavegotchiDiamond.deployTransaction;
+      receipt = await tx.wait();
+      console.log(
+        "Aavegotchi diamond deploy gas used:" + strDisplay(receipt.gasUsed)
+      );
+      totalGasUsed = totalGasUsed.add(receipt.gasUsed);
+
+      // Save the deployment address
+      deploymentConfig.aavegotchiDiamond = aavegotchiDiamond.address;
+      saveDeploymentConfig(deploymentConfig);
+
+      return aavegotchiDiamond;
+    } else {
+      // Use existing deployment
+      aavegotchiDiamond = await ethers.getContractAt(
+        "Diamond",
+        deploymentConfig.aavegotchiDiamond
+      );
+
+      console.log(
+        "Using existing Aavegotchi Diamond at " + aavegotchiDiamond.address
+      );
+      return aavegotchiDiamond;
+    }
+  }
+
+  async function deployWearableDiamond() {
+    // Deployment of Wearable Diamond
+    let wearableDiamond: any;
+    if (!deploymentConfig.wearableDiamond) {
+      // Deploy facets
+      const [eventhandlerFacet, wearablesFacet] = await deployFacets(
+        "contracts/Aavegotchi/WearableDiamond/facets/EventHandlerFacet.sol:EventHandlerFacet",
+        "contracts/Aavegotchi/WearableDiamond/facets/WearablesFacet.sol:WearablesFacet"
+      );
+
+      const [cutAddress, loupeAddress, ownershipAddress] =
+        await aavegotchiDiamond.getDefaultFacetAddresses();
+
+      wearableDiamond = await deployWithoutInit({
+        diamondName: "WearableDiamond",
+        facets: [
+          ["EventHandlerFacet", eventhandlerFacet],
+          ["WearablesFacet", wearablesFacet],
+        ],
+        args: [
+          ownerAddress,
+          cutAddress,
+          loupeAddress,
+          ownershipAddress,
+          aavegotchiDiamond.address,
+        ],
+      });
+
+      console.log("Wearable diamond address:" + wearableDiamond.address);
+
+      tx = wearableDiamond.deployTransaction;
+      receipt = await tx.wait();
+      console.log(
+        "Wearable diamond deploy gas used:" + strDisplay(receipt.gasUsed)
+      );
+
+      totalGasUsed = totalGasUsed.add(receipt.gasUsed);
+
+      // Set periphery
+      const peripheryFacet = await ethers.getContractAt(
+        "PeripheryFacet",
+        aavegotchiDiamond.address
+      );
+      tx = await peripheryFacet.setPeriphery(wearableDiamond.address);
+      receipt = await tx.wait();
+      if (!receipt.status) {
+        throw Error(`Error:: ${tx.hash}`);
+      }
+      console.log(
+        "Setting wearable diamond gas used::" + strDisplay(receipt.gasUsed)
+      );
+      totalGasUsed = totalGasUsed.add(receipt.gasUsed);
+
+      // Save the deployment address
+      deploymentConfig.wearableDiamond = wearableDiamond.address;
+      saveDeploymentConfig(deploymentConfig);
+
+      return wearableDiamond;
+    } else {
+      wearableDiamond = await ethers.getContractAt(
+        "WearableDiamond",
+        deploymentConfig.wearableDiamond
+      );
+      console.log(
+        "Using existing Wearable Diamond at " + wearableDiamond.address
+      );
+      return wearableDiamond;
+    }
+  }
+
+  async function deployNewForgeDiamond() {
+    let forgeDiamond: any;
+    if (!deploymentConfig.forgeDiamond) {
+      const [cutAddress, loupeAddress, ownershipAddress] =
+        await aavegotchiDiamond.getDefaultFacetAddresses();
+
+      forgeDiamond = await deployForgeDiamond(
+        deployFacets,
+        ownerAddress,
+        cutAddress,
+        loupeAddress,
+        ownershipAddress,
+        aavegotchiDiamond.address,
+        wearableDiamond.address
+      );
+      console.log("Forge diamond address:" + forgeDiamond.address);
+
+      // Save the deployment address
+      deploymentConfig.forgeDiamond = forgeDiamond.address;
+      saveDeploymentConfig(deploymentConfig);
+
+      return forgeDiamond;
+    } else {
+      forgeDiamond = await ethers.getContractAt(
+        "ForgeDiamond",
+        deploymentConfig.forgeDiamond
+      );
+      console.log("Using existing Forge Diamond at " + forgeDiamond.address);
+      return forgeDiamond;
+    }
+  }
+
+  async function deployHaunts() {
+    // Add Haunt 1 if not already added
+    if (!deploymentConfig.haunts || !deploymentConfig.haunts[1]) {
+      await createHauntWithCollaterals(
+        1,
+        daoFacet,
+        "10000",
+        ethers.utils.parseEther("0.1"),
+        getCollaterals(network.name, ghstAddress),
+        totalGasUsed
+      );
+
+      // Update config
+      deploymentConfig.haunts = deploymentConfig.haunts || {};
+      deploymentConfig.haunts[1] = true;
+      saveDeploymentConfig(deploymentConfig);
+    } else {
+      console.log("Haunt 1 already created.");
+    }
+
+    // Similar for Haunt 2
+    if (!deploymentConfig.haunts[2]) {
+      await createHauntWithCollaterals(
+        2,
+        daoFacet,
+        "15000",
+        ethers.utils.parseEther("0.1"),
+        getCollateralsHaunt2(network.name, ghstAddress),
+        totalGasUsed
+      );
+
+      // Update config
+      deploymentConfig.haunts[2] = true;
+      saveDeploymentConfig(deploymentConfig);
+    } else {
+      console.log("Haunt 2 already created.");
+    }
+  }
+
+  const aavegotchiDiamond = await deployAavegotchiDiamond();
+  const wearableDiamond = await deployWearableDiamond();
+  const forgeDiamond = await deployNewForgeDiamond();
+
+  const daoFacet = await ethers.getContractAt(
     "DAOFacet",
-    "VrfFacet",
-    "ShopFacet",
-    "MetaTransactionsFacet",
-    "ERC1155MarketplaceFacet",
-    "ERC721MarketplaceFacet",
-    "EscrowFacet",
-    "GotchiLendingFacet",
-    "LendingGetterAndSetterFacet",
-    "MarketplaceGetterFacet",
-    "SvgViewsFacet",
-    "WearableSetsFacet",
-    "WhitelistFacet",
-    "PeripheryFacet",
-    "MerkleDropFacet",
-    "ERC721BuyOrderFacet",
-    "ItemsRolesRegistryFacet",
-    "VoucherMigrationFacet",
-    "ERC1155BuyOrderFacet",
-    "PolygonXGeistBridgeFacet"
-  )) as [
-    BridgeFacet,
-    AavegotchiFacet,
-    AavegotchiGameFacet,
-    SvgFacet,
-    ItemsFacet,
-    ItemsTransferFacet,
-    CollateralFacet,
-    DAOFacet,
-    VrfFacet,
-    ShopFacet,
-    MetaTransactionsFacet,
-    ERC1155MarketplaceFacet,
-    ERC721MarketplaceFacet,
-    EscrowFacet,
-    GotchiLendingFacet,
-    LendingGetterAndSetterFacet,
-    MarketplaceGetterFacet,
-    SvgViewsFacet,
-    WearableSetsFacet,
-    WhitelistFacet,
-    PeripheryFacet,
-    MerkleDropFacet,
-    ERC721BuyOrderFacet,
-    ItemsRolesRegistryFacet,
-    VoucherMigrationFacet,
-    ERC1155BuyOrderFacet,
-    PolygonXGeistBridgeFacet
-  ];
-
-  const aavegotchiDiamond = await deploy({
-    diamondName: "AavegotchiDiamond",
-    initDiamond: "contracts/Aavegotchi/InitDiamond.sol:InitDiamond",
-    facets: [
-      ["BridgeFacet", bridgeFacet],
-      ["AavegotchiFacet", aavegotchiFacet],
-      ["AavegotchiGameFacet", aavegotchiGameFacet],
-      ["SvgFacet", svgFacet],
-      ["ItemsFacet", itemsFacet],
-      ["ItemsTransferFacet", itemsTransferFacet],
-      ["CollateralFacet", collateralFacet],
-      ["DAOFacet", daoFacet],
-      ["VrfFacet", vrfFacet],
-      ["ShopFacet", shopFacet],
-      ["MetaTransactionsFacet", metaTransactionsFacet],
-      ["ERC1155MarketplaceFacet", erc1155MarketplaceFacet],
-      ["ERC721MarketplaceFacet", erc721MarketplaceFacet],
-      ["EscrowFacet", escrowFacet],
-      ["GotchiLendingFacet", gotchiLendingFacet],
-      ["LendingGetterAndSetterFacet", lendingGetterAndSetterFacet],
-      ["MarketplaceGetterFacet", marketplaceGetterFacet],
-      ["SvgViewsFacet", svgViewsFacet],
-      ["WearableSetsFacet", wearableSetsFacet],
-      ["WhitelistFacet", whitelistFacet],
-      ["PeripheryFacet", peripheryFacet],
-      ["MerkleDropFacet", merkleDropFacet],
-      ["ERC721BuyOrderFacet", erc721BuyorderFacet],
-      ["ItemsRolesRegistryFacet", itemsRolesRegistryFacet],
-      ["VoucherMigrationFacet", voucherMigrationFacet],
-      ["ERC1155BuyOrderFacet", erc1155BuyOrderFacet],
-      ["PolygonXGeistBridgeFacet", polygonXGeistBridgeFacet],
-    ],
-    owner: ownerAddress,
-    args: initArgs,
-  });
-
-  console.log("Aavegotchi diamond address:" + aavegotchiDiamond.address);
-
-  tx = aavegotchiDiamond.deployTransaction;
-  receipt = await tx.wait();
-  console.log(
-    "Aavegotchi diamond deploy gas used:" + strDisplay(receipt.gasUsed)
-  );
-  totalGasUsed = totalGasUsed.add(receipt.gasUsed);
-
-  // wearable diamond
-  let [eventhandlerFacet, wearablesFacet] = await deployFacets(
-    "contracts/Aavegotchi/WearableDiamond/facets/EventHandlerFacet.sol:EventHandlerFacet",
-    "contracts/Aavegotchi/WearableDiamond/facets/WearablesFacet.sol:WearablesFacet"
-  );
-  //get constructor args from aavegotchi diamond
-  const [cutAddress, loupeAddress, ownershipAddress] =
-    await aavegotchiDiamond.getDefaultFacetAddresses();
-
-  const wearableDiamond = await deployWithoutInit({
-    diamondName: "WearableDiamond",
-    facets: [
-      ["EventHandlerFacet", eventhandlerFacet],
-      ["WearablesFacet", wearablesFacet],
-    ],
-    args: [
-      ownerAddress,
-      cutAddress,
-      loupeAddress,
-      ownershipAddress,
-      aavegotchiDiamond.address,
-    ],
-  });
-
-  console.log("Wearable diamond address:" + wearableDiamond.address);
-
-  tx = wearableDiamond.deployTransaction;
-  receipt = await tx.wait();
-  console.log(
-    "Wearable diamond deploy gas used:" + strDisplay(receipt.gasUsed)
-  );
-
-  totalGasUsed = totalGasUsed.add(receipt.gasUsed);
-
-  peripheryFacet = await ethers.getContractAt(
-    "PeripheryFacet",
     aavegotchiDiamond.address
   );
 
-  tx = await peripheryFacet.setPeriphery(wearableDiamond.address);
-  receipt = await tx.wait();
-  if (!receipt.status) {
-    throw Error(`Error:: ${tx.hash}`);
+  // Now, for adding haunts, item types, wearable sets, etc., we can check in the config whether they've been added
+  await deployHaunts();
+
+  //first set itemManagers
+
+  //Add Item Managers
+
+  if (!deploymentConfig.itemManagers) {
+    await daoFacet.addItemManagers(itemManagers);
+    deploymentConfig.itemManagers = itemManagers;
   }
-  console.log(
-    "Setting wearable diamond gas used::" + strDisplay(receipt.gasUsed)
+
+  // Add Item Types
+  if (
+    !deploymentConfig.itemTypes ||
+    Object.keys(deploymentConfig.itemTypes).length < allItemTypes.length
+  ) {
+    await addItemTypes(daoFacet, totalGasUsed, deploymentConfig);
+  } else {
+    console.log("All Item Types already added.");
+  }
+
+  // Add Wearable Sets (updated check)
+  if (
+    !deploymentConfig.wearableSets ||
+    Object.keys(deploymentConfig.wearableSets).length < wearableSetArrays.length
+  ) {
+    await addWearableSets(daoFacet, totalGasUsed, deploymentConfig);
+  } else {
+    console.log("All Wearable Sets already added.");
+  }
+
+  // Add Side View Dimensions (updated check)
+  if (
+    !deploymentConfig.sideViewDimensions ||
+    Object.keys(deploymentConfig.sideViewDimensions).length <
+      allSideViewDimensions.length
+  ) {
+    await addSideViewDimensions(aavegotchiDiamond.address, deploymentConfig);
+  } else {
+    console.log("All Side View Dimensions already added.");
+  }
+
+  // Add Side View Exceptions
+  if (
+    !deploymentConfig.sideViewExceptions ||
+    Object.keys(deploymentConfig.sideViewExceptions).length <
+      allExceptions.length
+  ) {
+    await addSideviewExceptions(aavegotchiDiamond.address, deploymentConfig);
+  } else {
+    console.log("All Side View Exceptions already added.");
+  }
+
+  // Upload all SVGs
+
+  const svgFacet = await ethers.getContractAt(
+    "SvgFacet",
+    aavegotchiDiamond.address
   );
-  totalGasUsed = totalGasUsed.add(receipt.gasUsed);
+  await uploadAllSvgs(svgFacet, totalGasUsed, deploymentConfig);
+  saveDeploymentConfig(deploymentConfig);
 
-  tx = wearableDiamond.deployTransaction;
-  receipt = await tx.wait();
-  console.log(
-    "Wearable diamond deploy gas used:" + strDisplay(receipt.gasUsed)
+  if (!deploymentConfig.setForgeDiamond) {
+    await daoFacet.setForge(forgeDiamond.address);
+    deploymentConfig.setForgeDiamond = true;
+    saveDeploymentConfig(deploymentConfig);
+  } else {
+    console.log("Forge diamond already set.");
+  }
+
+  if (!deploymentConfig.forgePropertiesSet) {
+    //Set forge properties
+    await setForgeProperties(forgeDiamond.address);
+    deploymentConfig.forgePropertiesSet = true;
+    saveDeploymentConfig(deploymentConfig);
+  } else {
+    console.log("Forge properties already set.");
+  }
+
+  // Add ERC721 Categories
+  const erc721MarketplaceFacet = await ethers.getContractAt(
+    "ERC721MarketplaceFacet",
+    aavegotchiDiamond.address
   );
-  totalGasUsed = totalGasUsed.add(receipt.gasUsed);
+  if (!deploymentConfig.erc721CategoriesAdded) {
+    await addERC721Categories(
+      erc721MarketplaceFacet,
+      totalGasUsed,
+      realmDiamondAddress,
+      fakeGotchiArtDiamondAddress
+    );
 
-  const forgeDiamond = await deployForgeDiamond(
-    deployFacets,
-    ownerAddress,
-    cutAddress,
-    loupeAddress,
-    ownershipAddress,
-    aavegotchiDiamond.address,
-    wearableDiamond.address
+    deploymentConfig.erc721CategoriesAdded = true;
+    saveDeploymentConfig(deploymentConfig);
+  } else {
+    console.log("ERC721 Categories already added.");
+  }
+
+  // Add ERC1155 Categories
+  const erc1155MarketplaceFacet = await ethers.getContractAt(
+    "ERC1155MarketplaceFacet",
+    aavegotchiDiamond.address
   );
+  if (!deploymentConfig.erc1155CategoriesAdded) {
+    await addERC1155Categories(
+      erc1155MarketplaceFacet,
+      totalGasUsed,
+      ghstStakingDiamondAddress,
+      installationDiamondAddress,
+      tileDiamondAddress,
+      forgeDiamond.address,
+      fakeGotchiCardDiamondAddress
+    );
 
-  console.log("Forge diamond address:" + forgeDiamond.address);
+    deploymentConfig.erc1155CategoriesAdded = true;
+    saveDeploymentConfig(deploymentConfig);
+  } else {
+    console.log("ERC1155 Categories already added.");
+  }
 
-  // get facets
-  daoFacet = await ethers.getContractAt("DAOFacet", aavegotchiDiamond.address);
-  aavegotchiGameFacet = await ethers.getContractAt(
+  // Set Realm Address
+  const aavegotchiGameFacet = await ethers.getContractAt(
     "AavegotchiGameFacet",
     aavegotchiDiamond.address
   );
-  erc1155MarketplaceFacet = await ethers.getContractAt(
-    "ERC1155MarketplaceFacet",
-    aavegotchiDiamond.address
-  );
-  erc721MarketplaceFacet = await ethers.getContractAt(
-    "ERC721MarketplaceFacet",
-    aavegotchiDiamond.address
-  );
+  if (!deploymentConfig.realmAddressSet) {
+    await setRealmAddress(
+      aavegotchiGameFacet,
+      totalGasUsed,
+      realmDiamondAddress
+    );
 
-  svgFacet = await ethers.getContractAt("SvgFacet", aavegotchiDiamond.address);
-  peripheryFacet = await ethers.getContractAt(
-    "PeripheryFacet",
-    aavegotchiDiamond.address
-  );
-
-  // add item managers
-  console.log("Adding item managers");
-  tx = await daoFacet.addItemManagers(itemManagers, { gasLimit: gasLimit });
-  console.log("Adding item managers tx:", tx.hash);
-  receipt = await tx.wait();
-  if (!receipt.status) {
-    throw Error(`Adding item manager failed: ${tx.hash}`);
+    deploymentConfig.realmAddressSet = true;
+    saveDeploymentConfig(deploymentConfig);
+  } else {
+    console.log("Realm address already set.");
   }
 
-  // // create Haunt 1 and upload payloads
-  tx = await createHauntWithCollaterals(
-    1,
-    daoFacet,
-    "10000",
-    ethers.utils.parseEther("0.1"),
-    getCollaterals(network.name, ghstAddress),
-    totalGasUsed
-  );
-
-  //create Haunt 2 and upload payloads
-  tx = await createHauntWithCollaterals(
-    2,
-    daoFacet,
-    "15000",
-    ethers.utils.parseEther("0.1"),
-    getCollateralsHaunt2(network.name, ghstAddress),
-    totalGasUsed
-  );
-
-  await addItemTypes(daoFacet, gasLimit, totalGasUsed);
-
-  await addWearableSets(daoFacet, gasLimit, totalGasUsed);
-
-  await addSideViewDimensions(aavegotchiDiamond.address);
-
-  await addSideviewExceptions(aavegotchiDiamond.address);
-
-  await uploadAllSvgs(svgFacet, totalGasUsed);
-
-  await setForgeProperties(forgeDiamond.address);
-  tx = await daoFacet.setForge(forgeDiamond.address, { gasLimit: gasLimit });
-  receipt = await tx.wait();
-  console.log("Forge diamond set:" + strDisplay(receipt.gasUsed));
-  totalGasUsed = totalGasUsed.add(receipt.gasUsed);
-
-  await addERC721Categories(
-    erc721MarketplaceFacet,
-    totalGasUsed,
-    realmDiamondAddress,
-    fakeGotchiArtDiamondAddress
-  );
-
-  await addERC1155Categories(
-    erc1155MarketplaceFacet,
-    totalGasUsed,
-    ghstStakingDiamondAddress,
-    installationDiamondAddress, //todo
-    tileDiamondAddress, //todo
-    forgeDiamond.address,
-    fakeGotchiCardDiamondAddress //todo
-  );
-
-  await setRealmAddress(aavegotchiGameFacet, totalGasUsed, realmDiamondAddress);
+  // Continue with any other steps...
 
   console.log("Total gas used: " + strDisplay(totalGasUsed));
 

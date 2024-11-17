@@ -93,7 +93,7 @@ contract DAOFacet is Modifiers {
     ///@dev If a certain collateral exists already, it will be overwritten
     ///@param _hauntId Identifier for haunt to add the collaterals to
     ///@param _collateralTypes An array of structs where each struct contains details about a particular collateral
-    function addCollateralTypes(uint256 _hauntId, AavegotchiCollateralTypeIO[] calldata _collateralTypes) public onlyItemManager {
+    function addCollateralTypes(uint256 _hauntId, AavegotchiCollateralTypeIO[] calldata _collateralTypes) public onlyDaoOrOwner {
         for (uint256 i; i < _collateralTypes.length; i++) {
             address newCollateralType = _collateralTypes[i].collateralType;
 
@@ -211,7 +211,7 @@ contract DAOFacet is Modifiers {
     //May overload the block gas limit but worth trying
     ///@notice allow an item manager to create a new Haunt, also uploagding the collateral types,collateral svgs,eyeshape types and eyeshape svgs all in one transaction
     ///@param _payload A struct containing all details needed to be uploaded for a new Haunt
-    function createHauntWithPayload(CreateHauntPayload calldata _payload) external onlyItemManager onlyPolygonOrTesting returns (uint256 hauntId_) {
+    function createHauntWithPayload(CreateHauntPayload calldata _payload) external onlyDaoOrOwner onlyPolygonOrTesting returns (uint256 hauntId_) {
         uint256 currentHauntId = s.currentHauntId;
         // require(
         //     s.haunts[currentHauntId].totalCount == s.haunts[currentHauntId].hauntMaxSize,

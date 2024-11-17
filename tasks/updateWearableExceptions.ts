@@ -19,7 +19,10 @@ export interface UpdateExceptionTaskArg {
   diamondAddress: string;
 }
 
-export function convertExceptionsToTaskFormat(exceptions: Exceptions[], diamondAddress: string) {
+export function convertExceptionsToTaskFormat(
+  exceptions: Exceptions[],
+  diamondAddress: string
+) {
   const items: Exceptions[] = [];
   for (let index = 0; index < exceptions.length; index++) {
     items.push(exceptions[index]);
@@ -29,9 +32,8 @@ export function convertExceptionsToTaskFormat(exceptions: Exceptions[], diamondA
     slotPositions: items.map((item: Exceptions) => item.slotPosition).join(),
     sides: items.map((item: Exceptions) => item.side).join(),
     exceptionBools: items.map((item: Exceptions) => item.exceptionBool).join(),
-    diamondAddress
+    diamondAddress,
   };
-  console.log("Task Arg: ", exceptionsTaskArg);
 
   return exceptionsTaskArg;
 }
@@ -58,7 +60,7 @@ export function convertStringToExceptionsArray(
         exceptionBoolsOutput[index].toLowerCase() === "true" ? true : false,
     });
   });
-  console.log("Output: ", output);
+
   return output;
 }
 
@@ -76,7 +78,11 @@ task(
     "exceptionBools",
     "Determines whether or not wearble ID is exception"
   )
-  .addOptionalParam("diamondAddress", "Diamond address to update", maticDiamondAddress)
+  .addOptionalParam(
+    "diamondAddress",
+    "Diamond address to update",
+    maticDiamondAddress
+  )
 
   .setAction(
     async (

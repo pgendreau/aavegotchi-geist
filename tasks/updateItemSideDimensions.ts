@@ -36,7 +36,7 @@ export function convertSideDimensionsToTaskFormat(
     dimensions: convertDimensionsArrayToString(
       items.map((item) => item.dimensions)
     ),
-    diamondAddress
+    diamondAddress,
   };
   return sideDimensionsTaskArgs;
 }
@@ -51,8 +51,6 @@ export function convertStringToSideDimensionsArray(
   const sidesOutput = sides.split(",");
   const sideDimensions: Dimensions[] =
     convertStringToDimensionsArray(dimensions);
-
-  console.log("side dimensions:", sideDimensions);
 
   itemIdsOutput.forEach((_, index) => {
     output.push({
@@ -72,7 +70,11 @@ task(
   .addParam("itemIds", "Item IDs to update dimensions")
   .addParam("sides", "Item side to be updated dimensions")
   .addParam("dimensions", "New dimensions of each item")
-  .addOptionalParam("diamondAddress", "Diamond address to update", maticDiamondAddress)
+  .addOptionalParam(
+    "diamondAddress",
+    "Diamond address to update",
+    maticDiamondAddress
+  )
   .setAction(
     async (
       taskArgs: UpdateItemSideDimensionsTaskArgs,

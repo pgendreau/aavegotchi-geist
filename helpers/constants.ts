@@ -73,6 +73,25 @@ export const AMOY_WEARABLE_DIAMOND =
   "0xAA201d960404140296Ea85570940830be08DAc70";
 export const AMOY_FORGE_DIAMOND = "0xF7c2AC46723Ad844620F798ECe67f5C673120FB6";
 
+interface NetworkAddresses {
+  wghst: string;
+}
+
+export const networkAddresses: Record<number, NetworkAddresses> = {
+  137: {
+    wghst: "0x443650Be09A02Be6fa79Ba19169A853A33581660",
+  },
+  31337: {
+    wghst: "0x443650Be09A02Be6fa79Ba19169A853A33581660",
+  },
+  631571: {
+    wghst: "0x443650Be09A02Be6fa79Ba19169A853A33581660",
+  },
+  63157: {
+    wghst: "0x74e2051A9Cd994F83f2d789448dCa4a3e879964c",
+  },
+};
+
 export enum ERC1155_BAAZAAR_CATEGORY_TO_ID {
   WEARABLE = 0,
   BADGE = 1,
