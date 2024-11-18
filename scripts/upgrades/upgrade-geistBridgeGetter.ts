@@ -37,19 +37,19 @@ export async function upgrade() {
 
   //the vault of base sepolia
   const tx = await daoFacet.updateGotchiGeistBridge(
-    "0x7B4A5261819ea2dA8cCC6a488f80B4e50f061289"
+    "0xEccF8B72c6A354532F27053e54A5b4b912D1e6D6"
   );
 
-  //previous it was 0x0000000000000000000000000000000000000000
-  console.log("Transaction: ", tx.hash);
-  await tx.wait();
+  // //previous it was 0x0000000000000000000000000000000000000000
+  // console.log("Transaction: ", tx.hash);
+  // await tx.wait();
 
-  const bridgeFacet = await ethers.getContractAt(
-    "PolygonXGeistGetterFacet",
-    diamond
-  );
-  const bridge = await bridgeFacet.getGotchiGeistBridge();
-  console.log("Current Bridge: ", bridge);
+  // const bridgeFacet = await ethers.getContractAt(
+  //   "PolygonXGeistGetterFacet",
+  //   diamond
+  // );
+  // const bridge = await bridgeFacet.getGotchiGeistBridge();
+  // console.log("Current Bridge: ", bridge);
 }
 
 if (require.main === module) {

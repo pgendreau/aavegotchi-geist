@@ -1081,9 +1081,9 @@
   },
   "631571": {
     "chainId": 631571,
-    "aavegotchiDiamond": "0x8045C27B29569eA6AcF39BF7B139f31c00b56467",
-    "wearableDiamond": "0xbb390F4A8358D80945b9DcF0440957fD329C62E0",
-    "forgeDiamond": "0x237c2C534a1e02B33D64b57A3e5D08BcfDb7301F",
+    "aavegotchiDiamond": "0xD66C6C61D5a535eD69E3769582895daec28a4651",
+    "wearableDiamond": "0x954B9F6DaB28F92c88192E2F52FDa5A6Df4A0334",
+    "forgeDiamond": "0xc38E71725eAd6E29c3AC01F839ACB3abBa71Adb3",
     "haunts": {
       "1": true,
       "2": true
