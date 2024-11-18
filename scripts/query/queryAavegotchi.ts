@@ -6,12 +6,12 @@ async function queryAavegotchiAtBlock() {
 
   const diamond = (await ethers.getContractAt(
     "contracts/Aavegotchi/facets/AavegotchiFacet.sol:AavegotchiFacet",
-    "0x1F0eb9099b9c398323dcf2F133dFdAD9dE7cF994",
+    "0x8045C27B29569eA6AcF39BF7B139f31c00b56467",
     signer
   )) as AavegotchiFacet;
 
   try {
-    const aavegotchis = await diamond.getAavegotchi(100, { blockTag: 4670 });
+    const aavegotchis = await diamond.getAavegotchi(506);
 
     console.log(aavegotchis);
   } catch (error) {

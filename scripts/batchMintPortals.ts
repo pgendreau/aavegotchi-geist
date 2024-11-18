@@ -1,28 +1,29 @@
-const { NonceManager } = require("@ethersproject/experimental");
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { network, ethers } from "hardhat";
 
 async function batchMintPortals() {
   const accounts = await ethers.getSigners();
   const account = await accounts[0].getAddress();
 
   console.log("account:", account);
+  let signer;
+  SignerWithAddress;
 
-  let nonceManagedSigner;
   const itemManager = "0xd38Df837a1EAd12ee16f8b8b7E5F58703f841668";
-  let diamondAddress = "0x87C969d083189927049f8fF3747703FB9f7a8AEd";
+  let diamondAddress = "0x87C969d083189927049f8fF3747703FB9f7a8AEd"; //sepolia
 
   const gasPrice = 50000000000;
 
-  let testing = ["hardhat"].includes(hre.network.name);
+  let testing = ["hardhat"].includes(network.name);
 
   if (testing) {
-    await hre.network.provider.request({
+    await network.provider.request({
       method: "hardhat_impersonateAccount",
       params: [itemManager],
     });
     signer = await ethers.provider.getSigner(itemManager);
-    nonceManagedSigner = new NonceManager(signer);
-  } else if (hre.network.name === "base-sepolia") {
-    signer = accounts[0]; // new ethers.Wallet(process.env.ITEM_MANAGER);
+  } else if (network.name === "base-sepolia") {
+    signer = accounts[0];
   } else {
     throw Error("Incorrect network selected");
   }
@@ -36,27 +37,32 @@ async function batchMintPortals() {
   const shopFacet = await ethers.getContractAt(
     "ShopFacet",
     diamondAddress,
-    nonceManagedSigner
+    signer
   );
   const vrfFacet = await ethers.getContractAt(
     "VrfFacet",
     diamondAddress,
-    nonceManagedSigner
+    signer
   );
   const gameFacet = await ethers.getContractAt(
     "AavegotchiGameFacet",
     diamondAddress,
-    nonceManagedSigner
+    signer
   );
   const aavegotchiFacet = await ethers.getContractAt(
     "contracts/Aavegotchi/facets/AavegotchiFacet.sol:AavegotchiFacet",
-    diamondAddress
+    diamondAddress,
+    signer
   );
   const ghstFacet = await ethers.getContractAt(
     "GHSTFacet",
-    "0xe97f36a00058aa7dfc4e85d23532c3f70453a7ae"
+    "0xe97f36a00058aa7dfc4e85d23532c3f70453a7ae",
+    signer
   );
-  await ghstFacet.approve(diamondAddress, ethers.utils.parseEther("100000000000000000000000"));
+  await ghstFacet.approve(
+    diamondAddress,
+    ethers.utils.parseEther("100000000000000000000000")
+  );
 
   let numberPerMint = 50;
   const maxNumber = 500; //15000;
@@ -88,24 +94,26 @@ async function batchMintPortals() {
   await Promise.all(promises);
 
   // open portals
-  const startId = 50
+  const startId = 50;
   for (let i = 0; i < 5; i++) {
-    let r = await vrfFacet.openPortals(Array.from({ length: 20 }, (_, j) => j + startId + i * 20), {
-      gasPrice: gasPrice,
-    });
+    let r = await vrfFacet.openPortals(
+      Array.from({ length: 20 }, (_, j) => j + startId + i * 20),
+      {
+        gasPrice: gasPrice,
+      }
+    );
     console.log(`open portal from ${startId + i * 20}: tx hash:`, r.hash);
   }
 
   // claim gotchis
   for (let i = 100; i < 150; i++) {
-    const gotchis = await gameFacet.portalAavegotchiTraits(i)
-    const selectedGotchi = gotchis[0]
-    let r = await gameFacet.claimAavegotchi(i, 0, selectedGotchi.minimumStake,  {
+    const gotchis = await gameFacet.portalAavegotchiTraits(i);
+    const selectedGotchi = gotchis[0];
+    let r = await gameFacet.claimAavegotchi(i, 0, selectedGotchi.minimumStake, {
       gasPrice: gasPrice,
     });
     console.log(`claimAavegotchi ${i}: tx hash:`, r.hash);
   }
-
 
   console.log("Used Gas:", totalGasUsed.toString());
 }

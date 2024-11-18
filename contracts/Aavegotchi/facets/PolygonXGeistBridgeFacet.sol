@@ -10,6 +10,19 @@ import {INFTBridge} from "../../shared/interfaces/INFTBridge.sol";
 import "../WearableDiamond/interfaces/IEventHandlerFacet.sol";
 
 contract PolygonXGeistBridgeFacet is Modifiers {
+    event GotchiGeistBridgeUpdate(address _newBridge);
+
+    function getGotchiGeistBridge() external view returns (address) {
+        return s.gotchGeistBridge;
+    }
+
+    ///@notice Allow the DAO to update an address as a Geist bridge of the gotchi
+    ///@param _newBridge The address to be update as a bridge
+    function setGotchiGeistBridge(address _newBridge) external onlyDaoOrOwner {
+        s.gotchGeistBridge = _newBridge;
+        emit GotchiGeistBridgeUpdate(_newBridge);
+    }
+
     function bridgeGotchi(address _receiver, uint256 _tokenId, uint256 _msgGasLimit, address _connector) external payable {
         Aavegotchi memory _aavegotchi = s.aavegotchis[_tokenId];
         bytes memory _metadata = abi.encode(_aavegotchi);
@@ -103,43 +116,5 @@ contract PolygonXGeistBridgeFacet is Modifiers {
             delete s.aavegotchiNamesUsed[LibAavegotchi.validateAndLowerName(name)];
         }
         delete s.aavegotchis[_tokenId];
-    }
-
-    function bridgeItem(address _receiver, uint256 _tokenId, uint256 _amount, uint256 _msgGasLimit, address _connector) external payable {
-        INFTBridge(s.itemGeistBridge).bridge(_receiver, msg.sender, _tokenId, _amount, _msgGasLimit, _connector, new bytes(0), new bytes(0));
-    }
-
-    struct ItemBridgingParams {
-        address receiver;
-        uint256 tokenId;
-        uint256 amount;
-        uint256 msgGasLimit;
-    }
-
-    function bridgeItems(ItemBridgingParams[] calldata bridgingParams, address _connector) external payable {
-        require(bridgingParams.length <= 5, "PolygonXGeistBridgeFacet: length should be lower than 5");
-        for (uint256 i = 0; i < bridgingParams.length; i++) {
-            _bridgeItem(bridgingParams[i].receiver, bridgingParams[i].tokenId, bridgingParams[i].amount, bridgingParams[i].msgGasLimit, _connector);
-        }
-    }
-
-    function _bridgeItem(address _receiver, uint256 _tokenId, uint256 _amount, uint256 _msgGasLimit, address _connector) internal {
-        INFTBridge(s.itemGeistBridge).bridge(_receiver, msg.sender, _tokenId, _amount, _msgGasLimit, _connector, new bytes(0), new bytes(0));
-    }
-
-    function mint(address _to, uint _tokenId, uint _quantity) external onlyItemGeistBridge {
-        uint256 totalQuantity = s.itemTypes[_tokenId].totalQuantity + _quantity;
-        require(totalQuantity <= s.itemTypes[_tokenId].maxQuantity, "BridgeFacet: Total item quantity exceeds max quantity");
-
-        LibItems.addToOwner(_to, _tokenId, _quantity);
-        s.itemTypes[_tokenId].totalQuantity = totalQuantity;
-        IEventHandlerFacet(s.wearableDiamond).emitTransferSingleEvent(msg.sender, address(0), _to, _tokenId, _quantity);
-    }
-
-    function burn(address _from, uint _tokenId, uint _quantity) external onlyItemGeistBridge {
-        require(_quantity <= s.itemTypes[_tokenId].totalQuantity, "BridgeFacet: item quantity exceeds total quantity");
-
-        LibItems.removeFromOwner(_from, _tokenId, _quantity);
-        s.itemTypes[_tokenId].totalQuantity = s.itemTypes[_tokenId].totalQuantity - _quantity;
     }
 }

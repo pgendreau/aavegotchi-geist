@@ -8,6 +8,10 @@
       "1": true,
       "2": true
     },
+    "itemManagers": [
+      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "0xb6384935d68e9858f8385ebeed7db84fc93b1420"
+    ],
     "itemTypes": {
       "0": true,
       "1": true,
@@ -902,19 +906,6 @@
       "6_415": true,
       "6_417": true
     },
-    "itemManagers": [
-      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-      "0xb6384935d68e9858f8385ebeed7db84fc93b1420"
-    ],
-    "erc721CategoriesAdded": true,
-    "erc1155CategoriesAdded": true,
-    "realmAddressSet": true,
-    "sideViewDimensionsAdded": false,
-    "sideViewExceptionsAdded": false,
-    "forgePropertiesSet": true,
-    "forgeDiamondSet": false,
-    "wearableSetsAdded": false,
-    "setForgeDiamond": true,
     "svgsUploaded": {
       "portal-open": {
         "0_2": true
@@ -999,6 +990,7 @@
         "283_285": true,
         "285_287": true,
         "287_289": true,
+        "289_291": true,
         "291_310": true,
         "310_317": true,
         "317_319": true,
@@ -1012,10 +1004,12 @@
         "333_334": true,
         "334_336": true,
         "336_338": true,
+        "338_340": true,
         "340_342": true,
         "342_344": true,
         "344_345": true,
         "345_346": true,
+        "346_347": true,
         "347_348": true,
         "348_349": true,
         "349_361": true,
@@ -1026,10 +1020,7 @@
         "396_398": true,
         "398_401": true,
         "401_406": true,
-        "406_418": true,
-        "289_291": true,
-        "338_340": true,
-        "346_347": true
+        "406_418": true
       },
       "sleeves": {
         "0_24": true,
@@ -1081,7 +1072,12 @@
         "0_47": true,
         "47_58": true
       }
-    }
+    },
+    "setForgeDiamond": true,
+    "forgePropertiesSet": true,
+    "erc721CategoriesAdded": true,
+    "erc1155CategoriesAdded": true,
+    "realmAddressSet": true
   },
   "631571": {
     "chainId": 631571,

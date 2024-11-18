@@ -41,6 +41,7 @@ library WearableLibDiamond {
         address contractOwner;
         //aavegotchi master diamond address
         address aavegotchiDiamond;
+        address itemGeistBridge;
     }
 
     function diamondStorage() internal pure returns (DiamondStorage storage ds) {

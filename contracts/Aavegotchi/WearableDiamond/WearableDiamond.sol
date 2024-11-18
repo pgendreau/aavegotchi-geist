@@ -10,9 +10,9 @@ pragma solidity 0.8.1;
 import {WearableLibDiamond} from "./libraries/WearableLibDiamond.sol";
 
 contract WearableDiamond {
-    constructor(address _contractOwner, address _diamondCutFacet, address _diaomondLoupeFacet, address _ownershipFacet, address aavegotchiDiamond) {
+    constructor(address _contractOwner, address _diamondCutFacet, address _diamondLoupeFacet, address _ownershipFacet, address aavegotchiDiamond) {
         WearableLibDiamond.setContractOwner(_contractOwner);
-        WearableLibDiamond.addDiamondFunctions(_diamondCutFacet, _diaomondLoupeFacet, _ownershipFacet);
+        WearableLibDiamond.addDiamondFunctions(_diamondCutFacet, _diamondLoupeFacet, _ownershipFacet);
         WearableLibDiamond.DiamondStorage storage ds = WearableLibDiamond.diamondStorage();
         ds.aavegotchiDiamond = aavegotchiDiamond;
         ds.supportedInterfaces[0xd9b67a26] = true; //erc1155
