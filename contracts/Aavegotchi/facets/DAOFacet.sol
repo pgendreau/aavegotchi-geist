@@ -442,10 +442,6 @@ contract DAOFacet is Modifiers {
         emit GotchiGeistBridgeUpdate(_newBridge);
     }
 
-    function getGotchiGeistBridge() external view returns (address) {
-        return s.gotchGeistBridge;
-    }
-
     ///@notice Allow the DAO to update an address as a Geist bridge of the item
     ///@param _newBridge The address to be update as a bridge
     function updateItemGeistBridge(address _newBridge) external onlyDaoOrOwner {

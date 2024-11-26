@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
 import {LibDiamond} from "../shared/libraries/LibDiamond.sol";
 import {DiamondCutFacet} from "../shared/facets/DiamondCutFacet.sol";
 import {DiamondLoupeFacet} from "../shared/facets/DiamondLoupeFacet.sol";
@@ -5,6 +8,7 @@ import {OwnershipFacet} from "../shared/facets/OwnershipFacet.sol";
 
 contract Diamond {
     constructor(address _contractOwner) {
+        console.log("lfg constructor");
         LibDiamond.setContractOwner(_contractOwner);
         LibDiamond.addDiamondFunctions(address(new DiamondCutFacet()), address(new DiamondLoupeFacet()), address(new OwnershipFacet()));
     }

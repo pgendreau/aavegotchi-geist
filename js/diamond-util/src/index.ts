@@ -2,6 +2,10 @@
 
 import { ethers } from "hardhat";
 import { Contract, ContractFactory } from "ethers";
+import {
+  DeploymentConfig,
+  saveDeploymentConfig,
+} from "../../../scripts/deployFullDiamond";
 
 const FacetCutAction = {
   Add: 0,
@@ -26,11 +30,20 @@ function getSelectors(contract: Contract) {
   return selectors;
 }
 
-async function deployFacets(facets: any[]) {
+async function deployFacets(
+  facets: any[],
+  diamondName: string,
+  deploymentConfig: DeploymentConfig
+) {
   console.log("--");
   const deployed = [];
+
+  // Get existing facets from deployment config
+  const existingFacets = deploymentConfig[diamondName]?.facets || {};
+
   for (const facet of facets) {
     if (Array.isArray(facet)) {
+      // Handle existing array-style facets
       if (typeof facet[0] !== "string") {
         throw Error(
           `Error using facet: facet name must be a string. Bad input: ${facet[0]}`
@@ -45,52 +58,101 @@ async function deployFacets(facets: any[]) {
       console.log("--");
       deployed.push(facet);
     } else {
+      // Handle string facet names
       if (typeof facet !== "string") {
         throw Error(
           `Error deploying facet: facet name must be a string. Bad input: ${facet}`
         );
       }
-      const facetFactory = await ethers.getContractFactory(facet);
-      console.log(`Deploying ${facet}`);
-      const deployedFactory = await facetFactory.deploy();
-      await deployedFactory.deployed();
-      console.log(`${facet} deployed: ${deployedFactory.address}`);
-      console.log("--");
-      deployed.push([facet, deployedFactory]);
+
+      // Check if facet exists in deployment config
+      if (existingFacets[facet]) {
+        console.log(
+          `Using existing ${facet} from config: ${existingFacets[facet]}`
+        );
+        const existingContract = await ethers.getContractAt(
+          facet,
+          existingFacets[facet]
+        );
+        deployed.push([facet, existingContract]);
+      } else {
+        // Deploy new facet
+        const facetFactory = await ethers.getContractFactory(facet);
+        console.log(`Deploying ${facet}`);
+        const deployedFactory = await facetFactory.deploy();
+        await deployedFactory.deployed();
+
+        if (!deploymentConfig[diamondName]) {
+          deploymentConfig[diamondName] = {
+            name: diamondName,
+            facets: {},
+          };
+        }
+
+        if (!deploymentConfig[diamondName].facets) {
+          deploymentConfig[diamondName].facets = {};
+        }
+
+        deploymentConfig[diamondName].facets[facet] = deployedFactory.address;
+        await saveDeploymentConfig(deploymentConfig);
+
+        console.log(`${facet} deployed: ${deployedFactory.address}`);
+        console.log("--");
+        deployed.push([facet, deployedFactory]);
+      }
     }
   }
   return deployed;
 }
 
-export async function deploy({
-  diamondName,
-  initDiamond,
-  facets,
-  owner,
-  args = [],
-  txArgs = {},
-}: {
+interface DeployArgs {
   diamondName: string;
   initDiamond: string;
-  facets: any[];
+  facetNames: string[];
   owner: string;
   args?: any[];
   txArgs?: any;
-}) {
+  deploymentConfig: DeploymentConfig;
+}
+
+export async function deploy({
+  diamondName,
+  initDiamond,
+  facetNames,
+  owner,
+  args = [],
+  txArgs = {},
+  deploymentConfig,
+}: DeployArgs) {
   if (arguments.length !== 1) {
     throw Error(
       `Requires only 1 map argument. ${arguments.length} arguments used.`
     );
   }
-  facets = await deployFacets(facets);
+
+  //First deploy the facets
+  const deployedFacets = await deployFacets(
+    facetNames,
+    diamondName,
+    deploymentConfig
+  );
   const diamondFactory = await ethers.getContractFactory("Diamond");
-  const diamondCut = [];
+  let diamondCut = [];
   console.log("--");
   console.log("Setting up diamondCut args");
   console.log("--");
-  for (const [name, deployedFacet] of facets) {
+
+  const signatures = new Set<string>();
+
+  for (const [name, deployedFacet] of deployedFacets) {
     console.log(name);
     console.log(getSignatures(deployedFacet));
+    for (const signature of getSignatures(deployedFacet)) {
+      if (signatures.has(signature)) {
+        throw Error(`Duplicate selector: ${signature}`);
+      }
+      signatures.add(signature);
+    }
     console.log("--");
     diamondCut.push([
       deployedFacet.address,
@@ -98,6 +160,7 @@ export async function deploy({
       getSelectors(deployedFacet),
     ]);
   }
+
   console.log("--");
 
   let result;
@@ -148,6 +211,9 @@ export async function deploy({
     "DiamondCutFacet",
     deployedDiamond.address
   );
+
+  console.log("diamond cut:", diamondCut);
+
   const tx = await diamondCutFacet.diamondCut(
     diamondCut,
     initDiamond.address,
@@ -155,44 +221,54 @@ export async function deploy({
     txArgs
   );
 
-  // console.log(`${diamondName} diamondCut arguments:`)
-  // console.log(JSON.stringify([facets, initDiamond.address, args], null, 4))
-  result = await tx.wait();
-  if (!result.status) {
-    console.log(
-      "TRANSACTION FAILED!!! -------------------------------------------"
-    );
-    console.log("See block explorer app for details.");
-  }
-  console.log("DiamondCut success!");
-  console.log("Transaction hash:" + tx.hash);
-  console.log("--");
+  // // console.log(`${diamondName} diamondCut arguments:`)
+  // // console.log(JSON.stringify([facets, initDiamond.address, args], null, 4))
+  // result = await tx.wait();
+  // if (!result.status) {
+  //   console.log(
+  //     "TRANSACTION FAILED!!! -------------------------------------------"
+  //   );
+  //   console.log("See block explorer app for details.");
+  // }
+  // console.log("DiamondCut success!");
+  // console.log("Transaction hash:" + tx.hash);
+  // console.log("--");
   return deployedDiamond;
+}
+
+interface DeployWithoutInitArgs {
+  diamondName: string;
+  facetNames: string[];
+  args?: any[];
+  txArgs?: any;
+  deploymentConfig: DeploymentConfig;
 }
 
 export async function deployWithoutInit({
   diamondName,
-  facets,
+  facetNames,
   args = [],
   txArgs = {},
-}: {
-  diamondName: string;
-  facets: any[];
-  args?: any[];
-  txArgs?: any;
-}) {
+  deploymentConfig,
+}: DeployWithoutInitArgs) {
   if (arguments.length !== 1) {
     throw Error(
       `Requires only 1 map argument. ${arguments.length} arguments used.`
     );
   }
-  facets = await deployFacets(facets);
+
+  const deployedFacets = await deployFacets(
+    facetNames,
+    diamondName,
+    deploymentConfig
+  );
+
   const diamondFactory = await ethers.getContractFactory(diamondName);
-  const diamondCut: any[] = [];
+  let diamondCut: any[] = [];
   console.log("--");
   console.log("Setting up diamondCut args");
   console.log("--");
-  for (const [name, deployedFacet] of facets) {
+  for (const [name, deployedFacet] of deployedFacets) {
     console.log(name);
     console.log(getSignatures(deployedFacet));
     console.log("--");
@@ -204,11 +280,18 @@ export async function deployWithoutInit({
   }
   console.log("--");
 
+  console.log("diamond cut:", diamondCut);
+
   let result;
 
   console.log(`Deploying ${diamondName}`);
+
   console.log(...args);
+
   const deployedDiamond = await diamondFactory.deploy(...args);
+
+  // return;
+
   console.log("here1");
   await deployedDiamond.deployed();
   console.log("here2");
@@ -231,6 +314,7 @@ export async function deployWithoutInit({
     "DiamondCutFacet",
     deployedDiamond.address
   );
+
   const tx = await diamondCutFacet.diamondCut(
     diamondCut,
     ethers.constants.AddressZero,

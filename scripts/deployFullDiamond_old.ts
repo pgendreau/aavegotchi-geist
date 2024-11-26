@@ -14,11 +14,33 @@ import { itemTypes as allItemTypes } from "../data/itemTypes/itemTypes";
 import { wearableSetArrays } from "./wearableSets";
 
 import {
+  AavegotchiFacet,
   AavegotchiGameFacet,
+  BridgeFacet,
+  CollateralFacet,
   SvgFacet,
+  ItemsFacet,
+  ItemsTransferFacet,
   DAOFacet,
+  VrfFacet,
   ERC721MarketplaceFacet,
+  EscrowFacet,
+  GotchiLendingFacet,
+  SvgViewsFacet,
+  WearableSetsFacet,
+  WhitelistFacet,
+  PolygonXGeistBridgeFacet,
+  ERC1155BuyOrderFacet,
+  VoucherMigrationFacet,
+  ItemsRolesRegistryFacet,
+  ERC721BuyOrderFacet,
+  MerkleDropFacet,
+  PeripheryFacet,
+  MarketplaceGetterFacet,
+  LendingGetterAndSetterFacet,
   ERC1155MarketplaceFacet,
+  MetaTransactionsFacet,
+  ShopFacet,
 } from "../typechain";
 import { BigNumberish, BigNumber } from "@ethersproject/bignumber";
 import { uploadSvgs } from "./svgHelperFunctions";
@@ -32,12 +54,6 @@ import {
   eyeShapesLeftSvgs,
   eyeShapesRightSvgs,
 } from "../svgs/eyeShapes-sidesOpt";
-
-import {
-  eyeShapesLeftSvgs as eyeShapesH2LeftSvgs,
-  eyeShapesRightSvgs as eyeShapesH2RightSvgs,
-} from "../svgs/eyeShapesH2-sidesOpt";
-
 import {
   wearablesLeftSvgs,
   wearablesRightSvgs,
@@ -54,19 +70,14 @@ import { allExceptions } from "../svgs/allExceptions";
 import { convertExceptionsToTaskFormat } from "../tasks/updateWearableExceptions";
 import { xpRelayerAddress } from "./helperFunctions";
 
-import { deploy, deployWithoutInit } from "../js/diamond-util/src";
+import { deploy, deployWithoutInit } from "../js/diamond-util/src/index";
 
 import { getCollaterals } from "../data/airdrops/collaterals/collateralTypes";
 import { getCollaterals as getCollateralsHaunt2 } from "../data/airdrops/collaterals/collateralTypesHaunt2";
-import { networkAddresses } from "../helpers/constants";
+import { ghstAddress, networkAddresses } from "../helpers/constants";
 
 // Import fs and path for file operations
 import * as os from "os";
-import { Contract } from "ethers";
-import {
-  collateralsLeftSvgs,
-  collateralsRightSvgs,
-} from "../svgs/collaterals-sides";
 
 // Define the interface for the deployment configuration
 export interface DeploymentConfig {
@@ -90,7 +101,7 @@ export interface DeploymentConfig {
   erc1155CategoriesAdded: boolean;
   realmAddressSet: boolean;
   wearableSets: Record<string, boolean>;
-  sideViewDimensions: Record<string, string>;
+  sideViewDimensions: Record<number, boolean>;
   sideViewExceptions: Record<string, boolean>;
   [key: string]: any; //other addresses
   itemManagers: string[] | undefined;
@@ -100,34 +111,7 @@ export interface DeploymentConfig {
 const CONFIG_PATH = path.join(__dirname, "../deployment-config.json");
 
 // Load the deployment configuration specific to the current chainId
-export function loadDeploymentConfig(
-  chainId: number,
-  useFreshDeploy: boolean = false
-): DeploymentConfig {
-  if (useFreshDeploy) {
-    return {
-      chainId: chainId,
-      aavegotchiDiamond: undefined,
-      wearableDiamond: undefined,
-      forgeDiamond: undefined,
-      haunts: {},
-      itemTypes: {},
-      wearableSets: {},
-      sideViewDimensions: {},
-      sideViewExceptions: {},
-      forgePropertiesSet: false,
-      forgeDiamondSet: false,
-      wearableSetsAdded: false,
-      sideViewDimensionsAdded: false,
-      sideViewExceptionsAdded: false,
-      svgsUploaded: {},
-      erc721CategoriesAdded: false,
-      erc1155CategoriesAdded: false,
-      realmAddressSet: false,
-      itemManagers: undefined,
-    };
-  }
-
+function loadDeploymentConfig(chainId: number): DeploymentConfig {
   try {
     const data = fs.readFileSync(CONFIG_PATH, "utf8");
     const allConfigs = JSON.parse(data);
@@ -160,7 +144,7 @@ export function loadDeploymentConfig(
 }
 
 // Save the deployment configuration specific to the current chainId
-export function saveDeploymentConfig(config: DeploymentConfig) {
+function saveDeploymentConfig(config: DeploymentConfig) {
   let allConfigs: Record<number, DeploymentConfig> = {};
   try {
     const data = fs.readFileSync(CONFIG_PATH, "utf8");
@@ -189,23 +173,39 @@ function strDisplay(str: any) {
 }
 
 async function deployForgeDiamond(
+  deployFacets: any,
   ownerAddress: string,
+  cutAddress: string,
+  loupeAddress: string,
+  ownershipAddress: string,
   aavegotchiDiamondAddress: string,
-  wearableDiamondAddress: string,
-  deploymentConfig: DeploymentConfig
+  wearableDiamondAddress: string
 ) {
   // Deploy forge facets
+  const [forgeFacet, forgeDaoFacet, forgeTokenFacet, forgeVrfFacet] =
+    await deployFacets(
+      "contracts/Aavegotchi/ForgeDiamond/facets/ForgeFacet.sol:ForgeFacet",
+      "contracts/Aavegotchi/ForgeDiamond/facets/ForgeDAOFacet.sol:ForgeDAOFacet",
+      "contracts/Aavegotchi/ForgeDiamond/facets/ForgeTokenFacet.sol:ForgeTokenFacet",
+      "contracts/Aavegotchi/ForgeDiamond/facets/ForgeVRFFacet.sol:ForgeVRFFacet"
+    );
 
   const forgeDiamond = await deployWithoutInit({
     diamondName: "ForgeDiamond",
-    facetNames: [
-      "ForgeFacet",
-      "ForgeTokenFacet",
-      "ForgeVRFFacet",
-      "ForgeDAOFacet",
+    facets: [
+      ["ForgeFacet", forgeFacet],
+      ["ForgeDAOFacet", forgeDaoFacet],
+      ["ForgeTokenFacet", forgeTokenFacet],
+      ["ForgeVRFFacet", forgeVrfFacet],
     ],
-    args: [ownerAddress, aavegotchiDiamondAddress, wearableDiamondAddress],
-    deploymentConfig,
+    args: [
+      ownerAddress,
+      cutAddress,
+      loupeAddress,
+      ownershipAddress,
+      aavegotchiDiamondAddress,
+      wearableDiamondAddress,
+    ],
   });
 
   return forgeDiamond;
@@ -389,9 +389,7 @@ async function addSideViewDimensions(
 
     // Mark these dimensions as added in the config
     batch.forEach((dim) => {
-      deploymentConfig.sideViewDimensions![
-        Number(dim.itemId)
-      ] = `${dim.dimensions.x}_${dim.dimensions.y}`;
+      deploymentConfig.sideViewDimensions![Number(dim.itemId)] = true;
     });
 
     // Save after each batch
@@ -456,16 +454,15 @@ async function uploadAllSvgs(
   console.log("Upload SVGs");
 
   const { eyeShapeSvgs } = require("../svgs/eyeShapes.js");
-  const { eyeShapeSvgs: eyeShapeH2Svgs } = require("../svgs/eyeShapesH2.js");
-
-  const {
-    collateralsSvgs: h1CollateralsSvgs,
-  } = require("../svgs/collaterals.js");
-  const {
-    collateralsSvgs: h2CollateralsSvgs,
-  } = require("../svgs/collateralsH2.js");
-
-  const collateralsSvgs = h1CollateralsSvgs.concat(h2CollateralsSvgs);
+  const collateralsSvgs = [
+    '<g class="gotchi-collateral"><path d="M36 15v-1h-1v-1h-1v-1h-4v1h-1v1h-1v1h-1v4h1v1h1v1h1v1h4v-1h1v-1h1v-1h1v-4h-1z" fill="#ac15f9"/><path d="M33 21h-3v1h4v-1h-1z" fill="#7e18f8"/><path d="M35 14v-1h-1v-1h-4v1h-1v1h-1v1h8v-1h-1z" fill="#fa34f3"/><path d="M36 15h-9v2h10v-2h-1z" fill="#cf15f9"/><path d="M35 19h-7v1h1v1h6v-1h1v-1h-1z" fill="#8f17f9"/></g>',
+  ];
+  const collateralsLeftSvgs = [
+    '<g class="gotchi-collateral"><path d="M23 15v-1h-2v7h1v-1h1v-1h1v-4z" fill="#7e18f8"/></g>',
+  ];
+  const collateralsRightSvgs = [
+    '<g class="gotchi-collateral"><path d="M41 14v1h-1v4h1v1h1v1h1v-7z" fill="#7e18f8"/></g>',
+  ];
 
   deploymentConfig.svgsUploaded = deploymentConfig.svgsUploaded || {};
 
@@ -483,14 +480,8 @@ async function uploadAllSvgs(
     "aavegotchi-back": aavegotchiSideSvgs.back,
     "collaterals-left": collateralsLeftSvgs,
     "collaterals-right": collateralsRightSvgs,
-    "collaterals-back": collateralsLeftSvgs.map(() => ``),
     "eyeShapes-left": eyeShapesLeftSvgs,
     "eyeShapes-right": eyeShapesRightSvgs,
-    "eyeShapes-back": eyeShapesLeftSvgs.map(() => ``),
-    eyeShapesH2: eyeShapeH2Svgs,
-    "eyeShapesH2-left": eyeShapesH2LeftSvgs,
-    "eyeShapesH2-right": eyeShapesH2RightSvgs,
-    "eyeShapesH2-back": eyeShapesH2RightSvgs.map(() => ``),
     wearables: wearables,
     sleeves: sleeveSvgsArray.map((value) => value.svg),
     "wearables-left": wearablesLeftSvgs,
@@ -661,9 +652,9 @@ async function setRealmAddress(
   totalGasUsed = totalGasUsed.add(receipt.gasUsed);
 }
 
-export async function deployFullDiamond(useFreshDeploy: boolean = false) {
+export async function deployFullDiamond() {
   if (
-    !["hardhat", "localhost", "amoy", "polter", "baseSepolia"].includes(
+    !["hardhat", "localhost", "amoy", "polter", "base-sepolia"].includes(
       network.name
     )
   ) {
@@ -676,15 +667,9 @@ export async function deployFullDiamond(useFreshDeploy: boolean = false) {
   if (network.name === "polter") {
     chainId = 631571;
   }
-  if (network.name === "amoy") {
-    chainId = 80002;
-  }
-  if (network.name === "baseSepolia") {
-    chainId = 84532;
-  }
 
   // Load existing deployment configuration
-  const deploymentConfig = loadDeploymentConfig(chainId, useFreshDeploy);
+  const deploymentConfig = loadDeploymentConfig(chainId);
 
   if (deploymentConfig.chainId === undefined) {
     deploymentConfig.chainId = chainId;
@@ -723,20 +708,9 @@ export async function deployFullDiamond(useFreshDeploy: boolean = false) {
   const rarityFarming = ownerAddress; // 'todo'
   const pixelCraft = ownerAddress; // 'todo'
   const itemManagers = [ownerAddress, xpRelayerAddress]; // 'todo'
-  let wghstContractAddress = "";
 
   const addresses = networkAddresses[chainId];
-
-  if (chainId === 31337) {
-    //deploy fake ghst token
-    //deploy ERC20.sol
-    const ERC20Factory = await ethers.getContractFactory("ERC20Token");
-    const erc20 = await ERC20Factory.deploy();
-    await erc20.deployed();
-    wghstContractAddress = erc20.address;
-  } else {
-    wghstContractAddress = addresses.wghst;
-  }
+  const wghstContractAddress = addresses.wghst;
 
   const initArgs = [
     [
@@ -754,44 +728,150 @@ export async function deployFullDiamond(useFreshDeploy: boolean = false) {
   let tx;
   let receipt;
 
-  async function deployAavegotchiDiamond(): Promise<Contract> {
+  async function deployFacets(...facets: any[]) {
+    const instances = [];
+    for (let facet of facets) {
+      let constructorArgs = [];
+      if (Array.isArray(facet)) {
+        [facet, constructorArgs] = facet;
+      }
+      const factory: any = await ethers.getContractFactory(facet);
+      const facetInstance = await factory.deploy(...constructorArgs);
+      await facetInstance.deployed();
+      const tx = facetInstance.deployTransaction;
+      const receipt = await tx.wait();
+      console.log(`${facet} deploy gas used:` + strDisplay(receipt.gasUsed));
+      totalGasUsed = totalGasUsed.add(receipt.gasUsed);
+      instances.push(facetInstance);
+    }
+    return instances;
+  }
+
+  async function deployAavegotchiDiamond() {
     let aavegotchiDiamond: any;
     if (!deploymentConfig.aavegotchiDiamond) {
+      // Deploy facets
+      let [
+        bridgeFacet,
+        aavegotchiFacet,
+        aavegotchiGameFacet,
+        svgFacet,
+        itemsFacet,
+        itemsTransferFacet,
+        collateralFacet,
+        daoFacet,
+        vrfFacet,
+        shopFacet,
+        metaTransactionsFacet,
+        erc1155MarketplaceFacet,
+        erc721MarketplaceFacet,
+        escrowFacet,
+        gotchiLendingFacet,
+        lendingGetterAndSetterFacet,
+        marketplaceGetterFacet,
+        svgViewsFacet,
+        wearableSetsFacet,
+        whitelistFacet,
+        peripheryFacet,
+        merkleDropFacet,
+        erc721BuyorderFacet,
+        itemsRolesRegistryFacet,
+        voucherMigrationFacet,
+        erc1155BuyOrderFacet,
+        polygonXGeistBridgeFacet,
+      ] = (await deployFacets(
+        "contracts/Aavegotchi/facets/BridgeFacet.sol:BridgeFacet",
+        "contracts/Aavegotchi/facets/AavegotchiFacet.sol:AavegotchiFacet",
+        "AavegotchiGameFacet",
+        "SvgFacet",
+        "contracts/Aavegotchi/facets/ItemsFacet.sol:ItemsFacet",
+        "ItemsTransferFacet",
+        "CollateralFacet",
+        "DAOFacet",
+        "VrfFacet",
+        "ShopFacet",
+        "MetaTransactionsFacet",
+        "ERC1155MarketplaceFacet",
+        "ERC721MarketplaceFacet",
+        "EscrowFacet",
+        "GotchiLendingFacet",
+        "LendingGetterAndSetterFacet",
+        "MarketplaceGetterFacet",
+        "SvgViewsFacet",
+        "WearableSetsFacet",
+        "WhitelistFacet",
+        "PeripheryFacet",
+        "MerkleDropFacet",
+        "ERC721BuyOrderFacet",
+        "ItemsRolesRegistryFacet",
+        "VoucherMigrationFacet",
+        "ERC1155BuyOrderFacet",
+        "PolygonXGeistBridgeFacet"
+      )) as [
+        BridgeFacet,
+        AavegotchiFacet,
+        AavegotchiGameFacet,
+        SvgFacet,
+        ItemsFacet,
+        ItemsTransferFacet,
+        CollateralFacet,
+        DAOFacet,
+        VrfFacet,
+        ShopFacet,
+        MetaTransactionsFacet,
+        ERC1155MarketplaceFacet,
+        ERC721MarketplaceFacet,
+        EscrowFacet,
+        GotchiLendingFacet,
+        LendingGetterAndSetterFacet,
+        MarketplaceGetterFacet,
+        SvgViewsFacet,
+        WearableSetsFacet,
+        WhitelistFacet,
+        PeripheryFacet,
+        MerkleDropFacet,
+        ERC721BuyOrderFacet,
+        ItemsRolesRegistryFacet,
+        VoucherMigrationFacet,
+        ERC1155BuyOrderFacet,
+        PolygonXGeistBridgeFacet
+      ];
+
       // Deploy Aavegotchi Diamond
       aavegotchiDiamond = await deploy({
         diamondName: "AavegotchiDiamond",
         initDiamond: "contracts/Aavegotchi/InitDiamond.sol:InitDiamond",
-        facetNames: [
-          "contracts/Aavegotchi/facets/BridgeFacet.sol:BridgeFacet",
-          "contracts/Aavegotchi/facets/AavegotchiFacet.sol:AavegotchiFacet",
-          "AavegotchiGameFacet",
-          "SvgFacet",
-          "contracts/Aavegotchi/facets/ItemsFacet.sol:ItemsFacet",
-          "ItemsTransferFacet",
-          "CollateralFacet",
-          "DAOFacet",
-          "VrfFacet",
-          "ShopFacet",
-          "MetaTransactionsFacet",
-          "ERC1155MarketplaceFacet",
-          "ERC721MarketplaceFacet",
-          "EscrowFacet",
-          "GotchiLendingFacet",
-          "LendingGetterAndSetterFacet",
-          "MarketplaceGetterFacet",
-          "SvgViewsFacet",
-          "WearableSetsFacet",
-          "WhitelistFacet",
-          "PeripheryFacet",
-          "MerkleDropFacet",
-          "ERC721BuyOrderFacet",
-          "ItemsRolesRegistryFacet",
-          "ERC1155BuyOrderFacet",
-          "PolygonXGeistBridgeFacet",
+        facets: [
+          ["BridgeFacet", bridgeFacet],
+          ["AavegotchiFacet", aavegotchiFacet],
+          ["AavegotchiGameFacet", aavegotchiGameFacet],
+          ["SvgFacet", svgFacet],
+          ["ItemsFacet", itemsFacet],
+          ["ItemsTransferFacet", itemsTransferFacet],
+          ["CollateralFacet", collateralFacet],
+          ["DAOFacet", daoFacet],
+          ["VrfFacet", vrfFacet],
+          ["ShopFacet", shopFacet],
+          ["MetaTransactionsFacet", metaTransactionsFacet],
+          ["ERC1155MarketplaceFacet", erc1155MarketplaceFacet],
+          ["ERC721MarketplaceFacet", erc721MarketplaceFacet],
+          ["EscrowFacet", escrowFacet],
+          ["GotchiLendingFacet", gotchiLendingFacet],
+          ["LendingGetterAndSetterFacet", lendingGetterAndSetterFacet],
+          ["MarketplaceGetterFacet", marketplaceGetterFacet],
+          ["SvgViewsFacet", svgViewsFacet],
+          ["WearableSetsFacet", wearableSetsFacet],
+          ["WhitelistFacet", whitelistFacet],
+          ["PeripheryFacet", peripheryFacet],
+          ["MerkleDropFacet", merkleDropFacet],
+          ["ERC721BuyOrderFacet", erc721BuyorderFacet],
+          ["ItemsRolesRegistryFacet", itemsRolesRegistryFacet],
+          ["VoucherMigrationFacet", voucherMigrationFacet],
+          ["ERC1155BuyOrderFacet", erc1155BuyOrderFacet],
+          ["PolygonXGeistBridgeFacet", polygonXGeistBridgeFacet],
         ],
         owner: ownerAddress,
         args: initArgs,
-        deploymentConfig,
       });
 
       console.log("Aavegotchi diamond address:" + aavegotchiDiamond.address);
@@ -809,7 +889,6 @@ export async function deployFullDiamond(useFreshDeploy: boolean = false) {
 
       return aavegotchiDiamond;
     } else {
-      console.log("using existring");
       // Use existing deployment
       aavegotchiDiamond = await ethers.getContractAt(
         "Diamond",
@@ -823,17 +902,32 @@ export async function deployFullDiamond(useFreshDeploy: boolean = false) {
     }
   }
 
-  async function deployWearableDiamond(): Promise<Contract> {
+  async function deployWearableDiamond() {
     // Deployment of Wearable Diamond
     let wearableDiamond: any;
     if (!deploymentConfig.wearableDiamond) {
       // Deploy facets
+      const [eventhandlerFacet, wearablesFacet] = await deployFacets(
+        "contracts/Aavegotchi/WearableDiamond/facets/EventHandlerFacet.sol:EventHandlerFacet",
+        "contracts/Aavegotchi/WearableDiamond/facets/WearablesFacet.sol:WearablesFacet"
+      );
+
+      const [cutAddress, loupeAddress, ownershipAddress] =
+        await aavegotchiDiamond.getDefaultFacetAddresses();
 
       wearableDiamond = await deployWithoutInit({
         diamondName: "WearableDiamond",
-        args: [ownerAddress, aavegotchiDiamond.address],
-        facetNames: ["EventHandlerFacet", "WearablesFacet"],
-        deploymentConfig,
+        facets: [
+          ["EventHandlerFacet", eventhandlerFacet],
+          ["WearablesFacet", wearablesFacet],
+        ],
+        args: [
+          ownerAddress,
+          cutAddress,
+          loupeAddress,
+          ownershipAddress,
+          aavegotchiDiamond.address,
+        ],
       });
 
       console.log("Wearable diamond address:" + wearableDiamond.address);
@@ -878,14 +972,20 @@ export async function deployFullDiamond(useFreshDeploy: boolean = false) {
     }
   }
 
-  async function deployNewForgeDiamond(): Promise<Contract> {
+  async function deployNewForgeDiamond() {
     let forgeDiamond: any;
     if (!deploymentConfig.forgeDiamond) {
+      const [cutAddress, loupeAddress, ownershipAddress] =
+        await aavegotchiDiamond.getDefaultFacetAddresses();
+
       forgeDiamond = await deployForgeDiamond(
+        deployFacets,
         ownerAddress,
+        cutAddress,
+        loupeAddress,
+        ownershipAddress,
         aavegotchiDiamond.address,
-        wearableDiamond.address,
-        deploymentConfig
+        wearableDiamond.address
       );
       console.log("Forge diamond address:" + forgeDiamond.address);
 
@@ -912,7 +1012,7 @@ export async function deployFullDiamond(useFreshDeploy: boolean = false) {
         daoFacet,
         "10000",
         ethers.utils.parseEther("0.1"),
-        getCollaterals(network.name, wghstContractAddress),
+        getCollaterals(network.name, ghstAddress),
         totalGasUsed
       );
 
@@ -931,7 +1031,7 @@ export async function deployFullDiamond(useFreshDeploy: boolean = false) {
         daoFacet,
         "15000",
         ethers.utils.parseEther("0.1"),
-        getCollateralsHaunt2(network.name, wghstContractAddress),
+        getCollateralsHaunt2(network.name, ghstAddress),
         totalGasUsed
       );
 
@@ -952,19 +1052,17 @@ export async function deployFullDiamond(useFreshDeploy: boolean = false) {
     aavegotchiDiamond.address
   );
 
-  console.log("Item Managers:", itemManagers);
-
-  if (!deploymentConfig.itemManagers) {
-    await daoFacet.addItemManagers(itemManagers);
-    deploymentConfig.itemManagers = itemManagers;
-  }
-
   // Now, for adding haunts, item types, wearable sets, etc., we can check in the config whether they've been added
   await deployHaunts();
 
   //first set itemManagers
 
   //Add Item Managers
+
+  if (!deploymentConfig.itemManagers) {
+    await daoFacet.addItemManagers(itemManagers);
+    deploymentConfig.itemManagers = itemManagers;
+  }
 
   // Add Item Types
   if (
@@ -1099,16 +1197,13 @@ export async function deployFullDiamond(useFreshDeploy: boolean = false) {
 
   return {
     aavegotchiDiamond: aavegotchiDiamond,
-    forgeDiamond: forgeDiamond,
-    wearableDiamond: wearableDiamond,
-    testGhstContractAddress: wghstContractAddress, //testing only
   };
 }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
 if (require.main === module) {
-  deployFullDiamond(true)
+  deployFullDiamond()
     .then(() => process.exit(0))
     .catch((error) => {
       console.error(error);
