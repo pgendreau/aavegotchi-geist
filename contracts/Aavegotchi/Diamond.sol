@@ -8,7 +8,6 @@ import {OwnershipFacet} from "../shared/facets/OwnershipFacet.sol";
 
 contract Diamond {
     constructor(address _contractOwner) {
-        console.log("lfg constructor");
         LibDiamond.setContractOwner(_contractOwner);
         LibDiamond.addDiamondFunctions(address(new DiamondCutFacet()), address(new DiamondLoupeFacet()), address(new OwnershipFacet()));
     }
