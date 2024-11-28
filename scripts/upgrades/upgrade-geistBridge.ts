@@ -4,6 +4,7 @@ import {
   DeployUpgradeTaskArgs,
   FacetsAndAddSelectors,
 } from "../../tasks/deployUpgrade";
+import { bridgeConfig } from "../geistBridge/bridgeConfig";
 
 export async function upgrade() {
   const facets: FacetsAndAddSelectors[] = [
@@ -18,7 +19,7 @@ export async function upgrade() {
 
   const args: DeployUpgradeTaskArgs = {
     diamondOwner: "0xd38Df837a1EAd12ee16f8b8b7E5F58703f841668", // polter-testnet
-    diamondAddress: "0x6Acc828BbbC6874de40Ca20bfeA7Cd2a2DA8DA8c", // polter-testnet
+    diamondAddress: bridgeConfig[63157].GOTCHI.MintableToken,
     facetsAndAddSelectors: joined,
     useLedger: false,
     useMultisig: false,

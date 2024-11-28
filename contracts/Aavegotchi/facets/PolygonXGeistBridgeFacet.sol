@@ -24,6 +24,9 @@ contract PolygonXGeistBridgeFacet is Modifiers {
     }
 
     function bridgeGotchi(address _receiver, uint256 _tokenId, uint256 _msgGasLimit, address _connector) external payable {
+        require(s.gotchGeistBridge != address(0), "PolygonXGeistBridgeFacet: Geist bridge not set");
+        require(s.itemGeistBridge != address(0), "PolygonXGeistBridgeFacet: Item bridge not set");
+
         Aavegotchi memory _aavegotchi = s.aavegotchis[_tokenId];
         bytes memory _metadata = abi.encode(_aavegotchi);
         INFTBridge(s.gotchGeistBridge).bridge{value: msg.value}(
@@ -57,8 +60,7 @@ contract PolygonXGeistBridgeFacet is Modifiers {
         INFTBridge(s.gotchGeistBridge).bridge(_receiver, msg.sender, _tokenId, 1, _msgGasLimit, _connector, _metadata, new bytes(0));
     }
 
-    //todo: add back onlyGeistBridge
-    function setMetadata(uint _tokenId, bytes memory _metadata) external {
+    function setMetadata(uint _tokenId, bytes memory _metadata) external onlyGotchiGeistBridge {
         Aavegotchi memory _aavegotchi = abi.decode(_metadata, (Aavegotchi));
         s.aavegotchis[_tokenId] = _aavegotchi;
 
@@ -73,8 +75,7 @@ contract PolygonXGeistBridgeFacet is Modifiers {
         }
     }
 
-    //todo: add back onlyGeistBridge
-    function mint(address _to, uint _tokenId) external {
+    function mint(address _to, uint _tokenId) external onlyGotchiGeistBridge {
         s.aavegotchis[_tokenId].owner = _to;
         s.tokenIds.push(uint32(_tokenId));
         s.ownerTokenIdIndexes[_to][_tokenId] = s.ownerTokenIds[_to].length;
@@ -82,8 +83,7 @@ contract PolygonXGeistBridgeFacet is Modifiers {
         emit LibERC721.Transfer(address(0), _to, _tokenId);
     }
 
-    //todo: add back onlyGeistBridge
-    function burn(address _from, uint _tokenId) external {
+    function burn(address _from, uint _tokenId) external onlyGotchiGeistBridge {
         // burn items before burn gotchi
         Aavegotchi memory _aavegotchi = s.aavegotchis[_tokenId];
         for (uint slot; slot < _aavegotchi.equippedWearables.length; slot++) {
