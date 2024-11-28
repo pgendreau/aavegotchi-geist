@@ -75,6 +75,7 @@ export const AMOY_FORGE_DIAMOND = "0xF7c2AC46723Ad844620F798ECe67f5C673120FB6";
 
 interface NetworkAddresses {
   wghst: string;
+  ghst?: string;
 }
 
 export const networkAddresses: Record<number, NetworkAddresses> = {
@@ -89,6 +90,10 @@ export const networkAddresses: Record<number, NetworkAddresses> = {
   },
   63157: {
     wghst: "0x74e2051A9Cd994F83f2d789448dCa4a3e879964c",
+  },
+  84532: {
+    wghst: "0xe97f36a00058aa7dfc4e85d23532c3f70453a7ae",
+    ghst: "0xe97f36a00058aa7dfc4e85d23532c3f70453a7ae",
   },
 };
 

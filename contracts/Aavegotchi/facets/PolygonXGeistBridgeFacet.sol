@@ -26,7 +26,16 @@ contract PolygonXGeistBridgeFacet is Modifiers {
     function bridgeGotchi(address _receiver, uint256 _tokenId, uint256 _msgGasLimit, address _connector) external payable {
         Aavegotchi memory _aavegotchi = s.aavegotchis[_tokenId];
         bytes memory _metadata = abi.encode(_aavegotchi);
-        INFTBridge(s.gotchGeistBridge).bridge(_receiver, msg.sender, _tokenId, 1, _msgGasLimit, _connector, _metadata, new bytes(0));
+        INFTBridge(s.gotchGeistBridge).bridge{value: msg.value}(
+            _receiver,
+            msg.sender,
+            _tokenId,
+            1,
+            _msgGasLimit,
+            _connector,
+            _metadata,
+            new bytes(0)
+        );
     }
 
     struct GotchiBridgingParams {

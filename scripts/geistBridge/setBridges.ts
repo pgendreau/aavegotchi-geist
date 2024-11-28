@@ -22,6 +22,9 @@ export default async function main() {
     diamondAddress = bridgeConfig[631571].GOTCHI.MintableToken;
     gotchiBridgeAddress = bridgeConfig[631571].GOTCHI.Controller;
     // itemBridgeAddress = bridgeConfig[631571].GOTCHI_ITEM.Vault;
+  } else if (network.name === "geist") {
+    diamondAddress = bridgeConfig[63157].GOTCHI.MintableToken;
+    gotchiBridgeAddress = bridgeConfig[63157].GOTCHI.Controller;
   } else {
     throw Error("No network settings for " + network.name);
   }
@@ -34,7 +37,8 @@ export default async function main() {
 
   const gotchiBridge = await ethers.getContractAt(
     "PolygonXGeistBridgeFacet",
-    diamondAddress
+    diamondAddress,
+    signer
   );
 
   const currentGotchiBridge = await gotchiBridge.getGotchiGeistBridge();

@@ -9,9 +9,32 @@
 // 7, YFI Collateral
 // 8, REN Collateral
 
+export interface Collateral {
+  name: string;
+  kovanAddress: string;
+  mainnetAddress: string;
+  maticAddress: string;
+  primaryColor: string;
+  secondaryColor: string;
+  cheekColor: string;
+  svgId: number;
+  eyeShapeSvgId: number;
+  modifiers: [
+    BigNumberish,
+    BigNumberish,
+    BigNumberish,
+    BigNumberish,
+    BigNumberish,
+    BigNumberish
+  ];
+  conversionRate: number;
+}
+
+import { BigNumberish, BytesLike } from "ethers";
+
 // Total length: 9
 
-const collaterals = [
+export const h1Collaterals: Collateral[] = [
   {
     name: "aDAI",
     kovanAddress: "0xdcf0af9e59c002fa3aa091a46196b37530fd48a8",
@@ -134,17 +157,35 @@ const collaterals = [
   },
 ];
 
-// function eightBitArrayToUint(array) {
-//   const uint = [];
-//   for (const num of array) {
-//     const value = ethers.BigNumber.from(num).toTwos(8);
-//     uint.unshift(value.toHexString().slice(2));
-//   }
-//   return ethers.BigNumber.from("0x" + uint.join(""));
-// }
+interface CollateralType {
+  collateralType: string;
+  collateralTypeInfo: CollateralTypeInfo;
+}
 
-export function getCollaterals(network: string, ghstAddress: string) {
-  const collateralTypes = [];
+interface CollateralTypeInfo {
+  modifiers: [
+    BigNumberish,
+    BigNumberish,
+    BigNumberish,
+    BigNumberish,
+    BigNumberish,
+    BigNumberish
+  ];
+  primaryColor: BytesLike;
+  secondaryColor: BytesLike;
+  cheekColor: BytesLike;
+  svgId: BigNumberish;
+  eyeShapeSvgId: BigNumberish;
+  conversionRate: BigNumberish;
+  delisted: boolean;
+}
+
+export function getCollaterals(
+  network: string,
+  ghstAddress: string,
+  collaterals: Collateral[]
+) {
+  const collateralTypes: CollateralType[] = [];
   for (const collateralType of collaterals) {
     const collateralTypeInfo = {
       primaryColor: "0x" + collateralType.primaryColor.slice(1),
@@ -156,30 +197,32 @@ export function getCollaterals(network: string, ghstAddress: string) {
       conversionRate: collateralType.conversionRate,
       delisted: false,
     };
-    const item = {
-      collateralType: "",
-      collateralTypeInfo: {},
-    };
 
-    console.log("network:", network);
+    let collateralAddress = "";
 
     if (network === "kovan") {
-      item.collateralType = collateralType.kovanAddress;
+      collateralAddress = collateralType.kovanAddress;
     } else if (network === "hardhat") {
-      item.collateralType = ghstAddress;
+      collateralAddress = ghstAddress;
     } else if (network === "mainnet") {
-      item.collateralType = collateralType.mainnetAddress;
+      collateralAddress = collateralType.mainnetAddress;
     } else if (network === "mumbai") {
-      item.collateralType = collateralType.maticAddress;
+      collateralAddress = collateralType.maticAddress;
     } else if (network === "matic") {
-      item.collateralType = collateralType.maticAddress;
+      collateralAddress = collateralType.maticAddress;
     } else if (network === "polter") {
-      item.collateralType = collateralType.maticAddress;
+      collateralAddress = collateralType.maticAddress;
     } else if (network === "geist") {
-      item.collateralType = collateralType.maticAddress;
+      collateralAddress = collateralType.maticAddress;
+    } else if (network === "baseSepolia") {
+      collateralAddress = ghstAddress;
     }
 
-    item.collateralTypeInfo = collateralTypeInfo;
+    const item = {
+      collateralType: collateralAddress,
+      collateralTypeInfo: collateralTypeInfo,
+    };
+
     collateralTypes.push(item);
   }
 

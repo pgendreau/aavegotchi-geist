@@ -56,8 +56,11 @@ import { xpRelayerAddress } from "./helperFunctions";
 
 import { deploy, deployWithoutInit } from "../js/diamond-util/src";
 
-import { getCollaterals } from "../data/airdrops/collaterals/collateralTypes";
-import { getCollaterals as getCollateralsHaunt2 } from "../data/airdrops/collaterals/collateralTypesHaunt2";
+import {
+  getCollaterals,
+  h1Collaterals,
+} from "../data/airdrops/collaterals/collateralTypes";
+import { collaterals as h2Collaterals } from "../data/airdrops/collaterals/collateralTypesHaunt2";
 import { networkAddresses } from "../helpers/constants";
 
 // Import fs and path for file operations
@@ -663,9 +666,14 @@ async function setRealmAddress(
 
 export async function deployFullDiamond(useFreshDeploy: boolean = false) {
   if (
-    !["hardhat", "localhost", "amoy", "polter", "baseSepolia"].includes(
-      network.name
-    )
+    ![
+      "hardhat",
+      "localhost",
+      "amoy",
+      "polter",
+      "baseSepolia",
+      "geist",
+    ].includes(network.name)
   ) {
     throw Error("No network settings for " + network.name);
   }
@@ -681,6 +689,9 @@ export async function deployFullDiamond(useFreshDeploy: boolean = false) {
   }
   if (network.name === "baseSepolia") {
     chainId = 84532;
+  }
+  if (network.name === "geist") {
+    chainId = 63157;
   }
 
   // Load existing deployment configuration
@@ -710,8 +721,8 @@ export async function deployFullDiamond(useFreshDeploy: boolean = false) {
     deploymentConfig.fakeGotchiCardDiamondAddress ||
     "0x9E282FE4a0be6A0C4B9f7d9fEF10547da35c52EA";
 
-  const name = "Aavegotchi";
-  const symbol = "GOTCHI";
+  const name = "Test";
+  const symbol = "TEST";
 
   const accounts = await ethers.getSigners();
   const ownerAddress = await accounts[0].getAddress();
@@ -912,7 +923,7 @@ export async function deployFullDiamond(useFreshDeploy: boolean = false) {
         daoFacet,
         "10000",
         ethers.utils.parseEther("0.1"),
-        getCollaterals(network.name, wghstContractAddress),
+        getCollaterals(network.name, wghstContractAddress, h1Collaterals),
         totalGasUsed
       );
 
@@ -931,7 +942,7 @@ export async function deployFullDiamond(useFreshDeploy: boolean = false) {
         daoFacet,
         "15000",
         ethers.utils.parseEther("0.1"),
-        getCollateralsHaunt2(network.name, wghstContractAddress),
+        getCollaterals(network.name, wghstContractAddress, h2Collaterals),
         totalGasUsed
       );
 
