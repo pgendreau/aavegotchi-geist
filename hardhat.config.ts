@@ -65,11 +65,11 @@ export default {
   },
   networks: {
     hardhat: {
-      // forking: {
-      //   url: process.env.POLTER_TESTNET_URL,
-      //   // timeout: 12000000,
-      //   blockNumber: 22047,
-      // },
+      forking: {
+        url: process.env.GEIST_URL,
+        // timeout: 12000000,
+        // blockNumber: 22047,
+      },
       blockGasLimit: 20000000,
       timeout: 120000,
       gas: "auto",

@@ -11,9 +11,14 @@ import "../WearableDiamond/interfaces/IEventHandlerFacet.sol";
 
 contract PolygonXGeistBridgeFacet is Modifiers {
     event GotchiGeistBridgeUpdate(address _newBridge);
+    event ItemGeistBridgeUpdate(address _newBridge);
 
     function getGotchiGeistBridge() external view returns (address) {
         return s.gotchGeistBridge;
+    }
+
+    function getItemGeistBridge() external view returns (address) {
+        return s.itemGeistBridge;
     }
 
     ///@notice Allow the DAO to update an address as a Geist bridge of the gotchi
@@ -21,6 +26,13 @@ contract PolygonXGeistBridgeFacet is Modifiers {
     function setGotchiGeistBridge(address _newBridge) external onlyDaoOrOwner {
         s.gotchGeistBridge = _newBridge;
         emit GotchiGeistBridgeUpdate(_newBridge);
+    }
+
+    ///@notice Allow the DAO to update an address as a Geist bridge of the items
+    ///@param _newBridge The address to be update as a bridge
+    function setItemGeistBridge(address _newBridge) external onlyDaoOrOwner {
+        s.itemGeistBridge = _newBridge;
+        emit ItemGeistBridgeUpdate(_newBridge);
     }
 
     function bridgeGotchi(address _receiver, uint256 _tokenId, uint256 _msgGasLimit, address _connector) external payable {
