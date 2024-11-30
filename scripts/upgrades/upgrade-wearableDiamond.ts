@@ -10,9 +10,7 @@ export async function upgrade() {
   const facets: FacetsAndAddSelectors[] = [
     {
       facetName: "WearablesFacet",
-      addSelectors: [
-        "function itemGeistBridge() public view returns (address)",
-      ],
+      addSelectors: [],
       removeSelectors: [],
     },
   ];
@@ -30,6 +28,29 @@ export async function upgrade() {
   };
 
   await run("deployUpgrade", args);
+
+  //now try running a bridge
+
+  const itemBridgeAddress = bridgeConfig[63157]["GOTCHI_ITEM"].MintableToken;
+
+  const impersonatedSigner = await ethers.getImpersonatedSigner(
+    "0xC3c2e1Cf099Bc6e1fA94ce358562BCbD5cc59FE5"
+  );
+
+  const signer = await (await ethers.getSigners())[0];
+  const itemBridge = await ethers.getContractAt(
+    "WearablesFacet",
+    itemBridgeAddress,
+    impersonatedSigner
+  );
+
+  const tx = await itemBridge.bridgeItem(
+    "0xC3c2e1Cf099Bc6e1fA94ce358562BCbD5cc59FE5",
+    "228",
+    "1",
+    500_000,
+    bridgeConfig[63157]["GOTCHI_ITEM"].connectors["137"].FAST
+  );
 }
 
 if (require.main === module) {

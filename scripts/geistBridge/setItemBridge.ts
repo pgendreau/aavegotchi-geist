@@ -29,7 +29,9 @@ export default async function main() {
     signer
   );
 
-  // const currexntItemBridge = await gotchiBridge.gewe();
+  const currentItemBridge = await gotchiBridge.itemGeistBridge();
+
+  console.log("Current Item Bridge:", currentItemBridge);
 
   // if (
   //   currentGotchiBridge === gotchiBridgeAddress
@@ -40,12 +42,12 @@ export default async function main() {
   // }
 
   // if (currentGotchiBridge !== gotchiBridgeAddress) {
-  console.log("Setting Item Bridge address:", controllerAddress);
-  const tx1 = await gotchiBridge.setItemGeistBridge(controllerAddress, {
-    gasPrice,
-  });
-  await tx1.wait();
-  console.log("Item Bridge set");
+  // console.log("Setting Item Bridge address:", controllerAddress);
+  // const tx1 = await gotchiBridge.setItemGeistBridge(controllerAddress, {
+  //   gasPrice,
+  // });
+  // await tx1.wait();
+  // console.log("Item Bridge set");
 }
 
 // if (currentItemBridge !== itemBridgeAddress) {

@@ -12,22 +12,19 @@ export async function upgrade() {
   const facets: FacetsAndAddSelectors[] = [
     {
       facetName: "PolygonXGeistBridgeFacet",
-      addSelectors: [
-        "function getItemGeistBridge() external view returns (address)",
-        "function setItemGeistBridge(address _newBridge) external",
-      ],
+      addSelectors: [],
       removeSelectors: [],
     },
   ];
 
   const joined = convertFacetAndSelectorsToString(facets);
 
-  const iface = new ethers.utils.Interface(
-    PolygonXGeistBridgeFacet__factory.abi
-  ) as PolygonXGeistBridgeFacetInterface;
-  const payload = iface.encodeFunctionData("setItemGeistBridge", [
-    bridgeConfig[63157].GOTCHI_ITEM.Controller,
-  ]);
+  // const iface = new ethers.utils.Interface(
+  //   PolygonXGeistBridgeFacet__factory.abi
+  // ) as PolygonXGeistBridgeFacetInterface;
+  // const payload = iface.encodeFunctionData("setItemGeistBridge", [
+  //   bridgeConfig[63157].GOTCHI_ITEM.Controller,
+  // ]);
 
   const args: DeployUpgradeTaskArgs = {
     diamondOwner: "0x3a2E7D1E98A4a051B0766f866237c73643fDF360", // polter-testnet
@@ -35,8 +32,8 @@ export async function upgrade() {
     facetsAndAddSelectors: joined,
     useLedger: false,
     useMultisig: false,
-    initAddress: bridgeConfig[63157].GOTCHI.MintableToken,
-    initCalldata: payload,
+    // initAddress: bridgeConfig[63157].GOTCHI.MintableToken,
+    // initCalldata: payload,
   };
 
   await run("deployUpgrade", args);
