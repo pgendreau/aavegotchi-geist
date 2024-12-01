@@ -43,8 +43,6 @@ library ForgeLibDiamond {
     }
 
     bytes32 public constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.diamond.storage");
-    // address public constant AAVEGOTCHI_DIAMOND = 0x86935F11C86623deC8a25696E1C19a8659CbF95d;
-    // address public constant WEARABLE_DIAMOND = 0x58de9AaBCaeEC0f69883C94318810ad79Cc6a44f;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
