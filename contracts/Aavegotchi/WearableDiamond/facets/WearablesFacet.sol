@@ -12,6 +12,14 @@ import {INFTBridge} from "../../../shared/interfaces/INFTBridge.sol";
 contract WearablesFacet {
     event ItemGeistBridgeUpdate(address _newBridge);
 
+    function name() external pure returns (string memory) {
+        return "Aavegotchi Items";
+    }
+
+    function symbol() external pure returns (string memory) {
+        return "ITEMS";
+    }
+
     function periphery() internal view returns (PeripheryFacet pFacet) {
         pFacet = PeripheryFacet(WearableLibDiamond.aavegotchiDiamond());
     }
@@ -106,25 +114,6 @@ contract WearablesFacet {
             new bytes(0)
         );
     }
-
-    // struct ItemBridgingParams {
-    //     address receiver;
-    //     uint256 tokenId;
-    //     uint256 amount;
-    //     uint256 msgGasLimit;
-    // }
-
-    // function bridgeItems(ItemBridgingParams[] calldata bridgingParams, address _connector) external payable {
-    //     require(bridgingParams.length <= 5, "WearablesFacet: length should be lower than 5");
-    //     for (uint256 i = 0; i < bridgingParams.length; i++) {
-    //         _bridgeItem(bridgingParams[i].receiver, bridgingParams[i].tokenId, bridgingParams[i].amount, bridgingParams[i].msgGasLimit, _connector);
-    //     }
-    // }
-
-    // function _bridgeItem(address _receiver, uint256 _tokenId, uint256 _amount, uint256 _msgGasLimit, address _connector) internal {
-    //     WearableLibDiamond.DiamondStorage storage ds = WearableLibDiamond.diamondStorage();
-    //     INFTBridge(ds.itemGeistBridge).bridge(_receiver, msg.sender, _tokenId, _amount, _msgGasLimit, _connector, new bytes(0), new bytes(0));
-    // }
 
     function mint(address _to, uint _tokenId, uint _quantity) external {
         require(msg.sender == WearableLibDiamond.diamondStorage().itemGeistBridge, "WearablesFacet: Only item geist bridge can mint");
