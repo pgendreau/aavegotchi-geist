@@ -10,7 +10,10 @@ export async function upgrade() {
   const facets: FacetsAndAddSelectors[] = [
     {
       facetName: "WearablesFacet",
-      addSelectors: [],
+      addSelectors: [
+        "function name() external pure returns (string memory)",
+        "function symbol() external pure returns (string memory)",
+      ],
       removeSelectors: [],
     },
   ];
