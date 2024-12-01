@@ -317,10 +317,7 @@ contract AavegotchiGameFacet is Modifiers {
     ///@dev only valid for claimed aavegotchis
     ///@param _tokenId The identifier of the NFT to spend the skill points on
     ///@param _values An array of four integers that represent the values of the skill points
-    function spendSkillPoints(
-        uint256 _tokenId,
-        int16[4] calldata _values
-    ) external onlyUnlocked(_tokenId) onlyAavegotchiOwner(_tokenId) onlyPolygonOrTesting {
+    function spendSkillPoints(uint256 _tokenId, int16[4] calldata _values) external onlyUnlocked(_tokenId) onlyAavegotchiOwner(_tokenId) {
         //To test (Dan): Prevent underflow (is this ok?), see require below
         uint256 totalUsed;
         for (uint256 index; index < _values.length; index++) {
