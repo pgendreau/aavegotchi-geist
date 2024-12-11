@@ -248,6 +248,16 @@ struct ERC1155BuyOrder {
     bool completed;
 }
 
+struct WearablesConfig {
+    string name;
+    uint256[EQUIPPED_WEARABLE_SLOTS] wearables;
+}
+
+struct AavegotchiWearableConfigs {
+    uint256 slotsUsed;
+    WearablesConfig[] wearableConfigs;
+}
+
 struct AppStorage {
     mapping(address => AavegotchiCollateralTypeInfo) collateralTypeInfo;
     mapping(address => uint256) collateralTypeIndexes;
@@ -383,6 +393,8 @@ struct AppStorage {
     // states for erc1155 buy orders
     uint256 nextERC1155BuyOrderId;
     mapping(uint256 => ERC1155BuyOrder) erc1155BuyOrders; // buyOrderId => data
+    // owner => Aavegotchi WearableConfigs
+    mapping(address => AavegotchiWearableConfigs[]) ownersWearableConfigs;
 }
 
 library LibAppStorage {
