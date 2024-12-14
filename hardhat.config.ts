@@ -31,6 +31,7 @@ require("./tasks/grantXP_customValues");
 require("./tasks/generateDiamondABI");
 require("./tasks/updateWearableExceptions");
 require("./tasks/deployXPDrop");
+require("./tasks/verifyContracts");
 
 // You have to export an object to set up your config
 // This object can have the following optional entries:
@@ -38,14 +39,36 @@ require("./tasks/deployXPDrop");
 // Go to https://buidler.dev/config/ to learn more
 export default {
   etherscan: {
-    apiKey: process.env.POLYGON_API_KEY,
+    apiKey: {
+      // matic: process.env.POLYGON_API_KEY,
+      polter: "empty",
+      geist: "empty",
+    },
+    customChains: [
+      {
+        network: "polter",
+        chainId: 631571,
+        urls: {
+          apiURL: "https://polter-testnet.explorer.alchemy.com/api",
+          browserURL: "https://polter-testnet.explorer.alchemy.com",
+        },
+      },
+      {
+        network: "geist",
+        chainId: 63157,
+        urls: {
+          apiURL: "https://geist-mainnet.explorer.alchemy.com/api",
+          browserURL: "https://geist-mainnet.explorer.alchemy.com",
+        },
+      },
+    ],
   },
   networks: {
     hardhat: {
       forking: {
-        url: process.env.MATIC_URL,
-        timeout: 12000000,
-        // blockNumber: 31480850,
+        url: process.env.GEIST_URL,
+        // timeout: 12000000,
+        blockNumber: 1743308,
       },
       blockGasLimit: 20000000,
       timeout: 120000,
@@ -71,6 +94,22 @@ export default {
       blockGasLimit: 20000000,
       gasPrice: 1000000000,
       timeout: 90000,
+    },
+    amoy: {
+      url: process.env.AMOY_URL,
+      accounts: [process.env.SECRET],
+    },
+    polter: {
+      url: process.env.POLTER_TESTNET_URL,
+      accounts: [process.env.SECRET],
+    },
+    geist: {
+      url: process.env.GEIST_URL,
+      accounts: [process.env.SECRET],
+    },
+    baseSepolia: {
+      url: process.env.BASE_SEPOLIA_URL,
+      accounts: [process.env.SECRET],
     },
 
     // gorli: {

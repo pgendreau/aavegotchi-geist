@@ -4,13 +4,11 @@ pragma solidity 0.8.1;
 import {LibAavegotchi, AavegotchiInfo} from "../libraries/LibAavegotchi.sol";
 
 import {LibStrings} from "../../shared/libraries/LibStrings.sol";
-import {AppStorage, Modifiers} from "../libraries/LibAppStorage.sol";
+import {Modifiers} from "../libraries/LibAppStorage.sol";
 import {LibGotchiLending} from "../libraries/LibGotchiLending.sol";
-// import "hardhat/console.sol";
 import {LibMeta} from "../../shared/libraries/LibMeta.sol";
 import {LibERC721Marketplace} from "../libraries/LibERC721Marketplace.sol";
 import {LibERC721} from "../../shared/libraries/LibERC721.sol";
-import {IERC721TokenReceiver} from "../../shared/interfaces/IERC721TokenReceiver.sol";
 
 import {ForgeFacet} from "../ForgeDiamond/facets/ForgeFacet.sol";
 
@@ -263,15 +261,15 @@ contract AavegotchiFacet is Modifiers {
     ///@notice Return the universal name of the NFT
 
     function name() external view returns (string memory) {
-        // return "Aavegotchi";
-        return s.name;
+        return "Aavegotchi";
+        // return s.name;
     }
 
     /// @notice An abbreviated name for NFTs in this contract
 
     function symbol() external view returns (string memory) {
-        //return "GOTCHI";
-        return s.symbol;
+        return "GOTCHI";
+        // return s.symbol;
     }
 
     /// @notice A distinct Uniform Resource Identifier (URI) for a given asset.

@@ -4,9 +4,6 @@ pragma solidity 0.8.1;
 import {LibAavegotchi, AavegotchiInfo, NUMERIC_TRAITS_NUM, AavegotchiCollateralTypeInfo, PortalAavegotchiTraitsIO, InternalPortalAavegotchiTraitsIO, PORTAL_AAVEGOTCHIS_NUM} from "../libraries/LibAavegotchi.sol";
 
 import {LibAppStorage} from "../libraries/LibAppStorage.sol";
-
-import {IERC20} from "../../shared/interfaces/IERC20.sol";
-import {LibStrings} from "../../shared/libraries/LibStrings.sol";
 import {Modifiers, Haunt, Aavegotchi} from "../libraries/LibAppStorage.sol";
 import {LibERC20} from "../../shared/libraries/LibERC20.sol";
 import {CollateralEscrow} from "../CollateralEscrow.sol";
@@ -77,12 +74,6 @@ contract AavegotchiGameFacet is Modifiers {
         uint256 _tokenId
     ) external view returns (PortalAavegotchiTraitsIO[PORTAL_AAVEGOTCHIS_NUM] memory portalAavegotchiTraits_) {
         portalAavegotchiTraits_ = LibAavegotchi.portalAavegotchiTraits(_tokenId);
-    }
-
-    ///@notice Query the $GHST token address
-    ///@return contract_ the deployed address of the $GHST token contract
-    function ghstAddress() external view returns (address contract_) {
-        contract_ = s.ghstContract;
     }
 
     ///@notice Query the numeric traits of an NFT
@@ -230,7 +221,11 @@ contract AavegotchiGameFacet is Modifiers {
     ///@param _tokenId The identifier of NFT to claim an Aavegotchi from
     ///@param _option The index of the aavegotchi to claim(1-10)
     ///@param _stakeAmount Minimum amount of collateral tokens needed to be sent to the new aavegotchi escrow contract
-    function claimAavegotchi(uint256 _tokenId, uint256 _option, uint256 _stakeAmount) external onlyUnlocked(_tokenId) onlyAavegotchiOwner(_tokenId) {
+    function claimAavegotchi(
+        uint256 _tokenId,
+        uint256 _option,
+        uint256 _stakeAmount
+    ) external onlyUnlocked(_tokenId) onlyAavegotchiOwner(_tokenId) onlyPolygonOrTesting {
         Aavegotchi storage aavegotchi = s.aavegotchis[_tokenId];
         require(aavegotchi.status == LibAavegotchi.STATUS_OPEN_PORTAL, "AavegotchiGameFacet: Portal not open");
         require(_option < PORTAL_AAVEGOTCHIS_NUM, "AavegotchiGameFacet: Only 10 aavegotchi options available");
@@ -264,7 +259,10 @@ contract AavegotchiGameFacet is Modifiers {
     ///@param _tokenId the identifier if the NFT to name
     ///@param _name Preferred name to give the claimed aavegotchi
 
-    function setAavegotchiName(uint256 _tokenId, string calldata _name) external onlyUnlocked(_tokenId) onlyAavegotchiOwner(_tokenId) {
+    function setAavegotchiName(
+        uint256 _tokenId,
+        string calldata _name
+    ) external onlyUnlocked(_tokenId) onlyAavegotchiOwner(_tokenId) onlyPolygonOrTesting {
         require(s.aavegotchis[_tokenId].status == LibAavegotchi.STATUS_AAVEGOTCHI, "AavegotchiGameFacet: Must claim Aavegotchi before setting name");
         string memory lowerName = LibAavegotchi.validateAndLowerName(_name);
         string memory existingName = s.aavegotchis[_tokenId].name;
@@ -374,7 +372,7 @@ contract AavegotchiGameFacet is Modifiers {
     ///@notice Allow the current owner of a gotchi to reassign all spent skill points
     ///@dev Reverts if user doesn't have enough Essence to pay for the respec
     ///@param _tokenId Id of the Gotchi to respec
-    function resetSkillPoints(uint32 _tokenId) public onlyUnlocked(_tokenId) onlyAavegotchiOwner(_tokenId) {
+    function resetSkillPoints(uint32 _tokenId) public onlyUnlocked(_tokenId) onlyAavegotchiOwner(_tokenId) onlyPolygonOrTesting {
         if (s.gotchiRespecCount[_tokenId] > 0) {
             ForgeTokenFacet forgeTokenFacet = ForgeTokenFacet(s.forgeDiamond);
             uint256 ESSENCE = 1_000_000_001;

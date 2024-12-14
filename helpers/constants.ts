@@ -66,6 +66,37 @@ export const CORE_PET_LEGENDARY = WEARABLE_GAP_OFFSET + 41;
 export const CORE_PET_MYTHICAL = WEARABLE_GAP_OFFSET + 42;
 export const CORE_PET_GODLIKE = WEARABLE_GAP_OFFSET + 43;
 
+export const AMOY_DIAMOND = "0xC80DB01aeDAD5F6E3088c75F60E52f579Cf1D3Cb";
+export const AMOY_DIAMOND_OWNER = "0xB9D736c48351Bad464710ee73BA80A0A659c1795";
+export const AMOY_GHST = "0xF679b8D109b2d23931237Ce948a7D784727c0897";
+export const AMOY_WEARABLE_DIAMOND =
+  "0xAA201d960404140296Ea85570940830be08DAc70";
+export const AMOY_FORGE_DIAMOND = "0xF7c2AC46723Ad844620F798ECe67f5C673120FB6";
+
+interface NetworkAddresses {
+  wghst: string;
+  ghst?: string;
+}
+
+export const networkAddresses: Record<number, NetworkAddresses> = {
+  137: {
+    wghst: "0x443650Be09A02Be6fa79Ba19169A853A33581660",
+  },
+  31337: {
+    wghst: "0x443650Be09A02Be6fa79Ba19169A853A33581660",
+  },
+  631571: {
+    wghst: "0x443650Be09A02Be6fa79Ba19169A853A33581660",
+  },
+  63157: {
+    wghst: "0x74e2051A9Cd994F83f2d789448dCa4a3e879964c",
+  },
+  84532: {
+    wghst: "0xe97f36a00058aa7dfc4e85d23532c3f70453a7ae",
+    ghst: "0xe97f36a00058aa7dfc4e85d23532c3f70453a7ae",
+  },
+};
+
 export enum ERC1155_BAAZAAR_CATEGORY_TO_ID {
   WEARABLE = 0,
   BADGE = 1,
@@ -84,7 +115,6 @@ export enum ERC721_BAAZAAR_CATEGORY_TO_ID {
   REALM = 4,
   FAKEGOTCHIS = 5,
 }
-
 export enum WEARABLE_BASE_QUANTITIES {
   COMMON = 1000,
   UNCOMMON = 500,

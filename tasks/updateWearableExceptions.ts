@@ -16,9 +16,13 @@ export interface UpdateExceptionTaskArg {
   slotPositions: string;
   sides: string;
   exceptionBools: string;
+  diamondAddress: string;
 }
 
-export function convertExceptionsToTaskFormat(exceptions: Exceptions[]) {
+export function convertExceptionsToTaskFormat(
+  exceptions: Exceptions[],
+  diamondAddress: string
+) {
   const items: Exceptions[] = [];
   for (let index = 0; index < exceptions.length; index++) {
     items.push(exceptions[index]);
@@ -28,8 +32,8 @@ export function convertExceptionsToTaskFormat(exceptions: Exceptions[]) {
     slotPositions: items.map((item: Exceptions) => item.slotPosition).join(),
     sides: items.map((item: Exceptions) => item.side).join(),
     exceptionBools: items.map((item: Exceptions) => item.exceptionBool).join(),
+    diamondAddress,
   };
-  console.log("Task Arg: ", exceptionsTaskArg);
 
   return exceptionsTaskArg;
 }
@@ -56,7 +60,7 @@ export function convertStringToExceptionsArray(
         exceptionBoolsOutput[index].toLowerCase() === "true" ? true : false,
     });
   });
-  console.log("Output: ", output);
+
   return output;
 }
 
@@ -73,6 +77,11 @@ task(
   .addParam(
     "exceptionBools",
     "Determines whether or not wearble ID is exception"
+  )
+  .addOptionalParam(
+    "diamondAddress",
+    "Diamond address to update",
+    maticDiamondAddress
   )
 
   .setAction(
@@ -91,7 +100,7 @@ task(
       const signer: Signer = await getRelayerSigner(hre);
       const svgViewsFacet = (await hre.ethers.getContractAt(
         "SvgViewsFacet",
-        maticDiamondAddress,
+        taskArgs.diamondAddress,
         signer
       )) as SvgViewsFacet;
 

@@ -10,11 +10,7 @@ import {LibDiamond} from "../../shared/libraries/LibDiamond.sol";
 contract PeripheryFacet is Modifiers {
     //WRITE
 
-    function peripherySetApprovalForAll(
-        address _operator,
-        bool _approved,
-        address _onBehalfOf
-    ) external onlyPeriphery {
+    function peripherySetApprovalForAll(address _operator, bool _approved, address _onBehalfOf) external onlyPeriphery {
         s.operators[_onBehalfOf][_operator] = _approved;
     }
 
@@ -62,6 +58,21 @@ contract PeripheryFacet is Modifiers {
         }
 
         LibERC1155.onERC1155BatchReceived(_operator, _from, _to, _ids, _values, _data);
+    }
+
+    function peripheryBridgeMint(address _to, uint _tokenId, uint _quantity) external onlyPeriphery {
+        uint256 totalQuantity = s.itemTypes[_tokenId].totalQuantity + _quantity;
+        require(totalQuantity <= s.itemTypes[_tokenId].maxQuantity, "PeripheryFacet: Total item quantity exceeds max quantity");
+
+        LibItems.addToOwner(_to, _tokenId, _quantity);
+        s.itemTypes[_tokenId].totalQuantity = totalQuantity;
+    }
+
+    function peripheryBridgeBurn(address _from, uint _tokenId, uint _quantity) external onlyPeriphery {
+        require(_quantity <= s.itemTypes[_tokenId].totalQuantity, "BridgeFacet: item quantity exceeds total quantity");
+
+        LibItems.removeFromOwner(_from, _tokenId, _quantity);
+        s.itemTypes[_tokenId].totalQuantity = s.itemTypes[_tokenId].totalQuantity - _quantity;
     }
 
     function removeInterface() external onlyOwner {
