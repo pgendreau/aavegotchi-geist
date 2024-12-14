@@ -42,7 +42,7 @@ contract WearablesConfigFacet is Modifiers {
 
             // send GHST to the dao treasury
             (bool success, ) = payable(s.daoTreasury).call{value: msg.value}("");
-            require(success, "WearablesConfigFacet: Failed to send ETH to DAO treasury");
+            require(success, "WearablesConfigFacet: Failed to send GHST to DAO treasury");
 
             emit WearablesConfigPaymentReceived(owner, _tokenId, wearablesConfigId, msg.value);
         }
