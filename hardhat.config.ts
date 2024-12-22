@@ -65,10 +65,14 @@ export default {
   },
   networks: {
     hardhat: {
+      allowUnlimitedContractSize: true, // for testing
       forking: {
-        url: process.env.GEIST_URL,
+        url: process.env.MATIC_URL,
+        // url: process.env.POLTER_TESTNET_URL,
+        // url: process.env.GEIST_URL,
         // timeout: 12000000,
-        blockNumber: 1743308,
+        blockNumber: 65731307, // polygon
+        //blocknumber: 28294 // polter
       },
       blockGasLimit: 20000000,
       timeout: 120000,
