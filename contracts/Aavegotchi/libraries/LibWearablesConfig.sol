@@ -7,15 +7,16 @@ import {LibAppStorage, AppStorage, WearablesConfig, ItemType, EQUIPPED_WEARABLE_
 
 library LibWearablesConfig {
 
-    function _getNewWearablesConfigId(address _owner, uint256 _tokenId) internal view returns (uint256 wearablesConfigId) {
+    function _getNextWearablesConfigId(address _owner, uint256 _tokenId) internal view returns (uint256 nextWearablesConfigId) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        // slots start at 0 so last slot id is slotsUsed - 1
-        wearablesConfigId = uint256(s.ownersWearableConfigs[_owner][_tokenId].slotsUsed);
+        // slots start at 0 so slotsUsed is always the next config id
+        nextWearablesConfigId = s.ownerGotchiSlotsUsed[_owner][_tokenId];
     }
 
     function _wearablesConfigExists(address _owner, uint256 _tokenId, uint256 _wearablesConfigId) internal view returns (bool exists) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        exists = (s.ownersWearableConfigs[_owner][_tokenId].slotsUsed >= _wearablesConfigId);
+        // slots start at 0 so slots used should always be greater by 1 than the last config id
+        exists = (s.ownerGotchiSlotsUsed[_owner][_tokenId] > _wearablesConfigId);
     }
 
     function _checkValidWearables(uint256[EQUIPPED_WEARABLE_SLOTS] memory _wearablesToStore) internal view returns (bool valid) {
