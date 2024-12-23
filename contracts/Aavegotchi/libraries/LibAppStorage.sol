@@ -257,11 +257,6 @@ struct WearablesConfig {
     uint256[EQUIPPED_WEARABLE_SLOTS] wearables;
 }
 
-struct AavegotchiWearableConfigs {
-    uint256 slotsUsed;
-    WearablesConfig[] wearableConfigs;
-}
-
 struct AppStorage {
     mapping(address => AavegotchiCollateralTypeInfo) collateralTypeInfo;
     mapping(address => uint256) collateralTypeIndexes;
@@ -400,9 +395,7 @@ struct AppStorage {
     // gotchi => owner => wearable configs
     mapping(uint256 => mapping(address => WearablesConfig[])) gotchiWearableConfigs;
     // owner => gotchi => slots used
-    mapping(address => mapping (uint256 => uint256)) ownerGotchiSlotsUsed;
-    // owner => Aavegotchi Wearable
-    mapping(address => AavegotchiWearableConfigs[]) ownersWearableConfigs;
+    mapping(address => mapping (uint256 => uint8)) ownerGotchiSlotsUsed;
 }
 
 library LibAppStorage {
