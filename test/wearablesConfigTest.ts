@@ -59,20 +59,19 @@ describe("Testing Wearables Config", async function () {
     it("Should revert if wearables list is invalid", async function () {
       const invalidWearables = new Array(16).fill(1);
       await expect(
-        wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "test", invalidWearables)
+        wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test", invalidWearables)
       ).to.be.revertedWith(
         "WearablesConfigFacet: Invalid wearables"
       );
     });
-
     it("Should revert if wearablesConfig name is empty", async function () {
       await expect(
         wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "", wearablesToStore)
       ).to.be.revertedWith("WearablesConfigFacet: WearablesConfig name cannot be blank");
     });
-
     it("Should succeed to create wearablesConfig if all parameters are valid", async function () {
       const receipt = await (
+        // config #1
         await wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test", wearablesToStore)
       ).wait();
       // verify wearablesConfig id from event
@@ -90,6 +89,19 @@ describe("Testing Wearables Config", async function () {
       expect(
         wearables.map(bigNumber => bigNumber.toNumber())
       ).to.eql(wearablesToStore);
+    });
+  });
+
+  describe("Testing getWearablesConfig", async function () {
+    it("Should revert if invalid wearablesConfig id", async function () {
+      await expect(
+        wearablesConfigFacetWithOwner.getWearablesConfig(aavegotchiOwnerAddress, aavegotchiId, 99)
+      ).to.be.revertedWith("WearablesConfigFacet: invalid id, WearablesConfig not found");
+    });
+    it("Should return name and wearables array if valid wearablesConfig id", async function () {
+      const wearablesConfig = await wearablesConfigFacetWithOwner.getWearablesConfig(aavegotchiOwnerAddress, aavegotchiId, 0);
+      expect(wearablesConfig.name).to.equal("Test");
+      expect(wearablesConfig.wearables.map(bigNumber => bigNumber.toNumber())).to.eql(wearablesToStore);
     });
   });
 
@@ -120,6 +132,7 @@ describe("Testing Wearables Config", async function () {
       ).to.be.revertedWith("WearablesConfigFacet: invalid id, WearablesConfig not found");
     });
   });
+
   describe("Testing wearablesConfigExists", async function () {
     it("Should return true for valid wearablesConfig", async function () {
       expect(
@@ -132,12 +145,14 @@ describe("Testing Wearables Config", async function () {
       ).to.be.false;
     });
   });
+
   describe("Testing getAavegotchiWearablesConfigCount", async function () {
     it("Should return the right amount of wearablesConfig", async function () {
       expect(
         await wearablesConfigFacetWithOwner.getAavegotchiWearablesConfigCount(aavegotchiOwnerAddress, aavegotchiId)
       ).to.equal(1);
-      await wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "test", wearablesToStore)
+      // config #2
+      await wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test", wearablesToStore)
       expect(
         await wearablesConfigFacetWithOwner.getAavegotchiWearablesConfigCount(aavegotchiOwnerAddress, aavegotchiId)
       ).to.equal(2);
@@ -147,90 +162,18 @@ describe("Testing Wearables Config", async function () {
     });
   });
 
-  //describe("Testing getWearablesConfig", async function () {
-  //  it("Should revert if invalid wearablesConfig id", async function () {
-  //    await expect(
-  //      WearablesConfigFacetWithOwner.getWearablesConfig(secondwearablesConfigId + 1)
-  //    ).to.be.revertedWith("WearablesConfigFacet: wearablesConfig not found");
-  //  });
-  //  it("Should return array if valid wearablesConfig id", async function () {
-  //    const wearablesConfig = await WearablesConfigFacetWithOwner.getWearablesConfig(wearablesConfigId);
-  //    expect(wearablesConfig.owner).to.equal(aavegotchiOwnerAddress);
-  //    expect(wearablesConfig.addresses.length).to.equal(2);
-  //    expect(wearablesConfig.addresses[0]).to.equal(borrowerAddress);
-  //  });
-  //});
-  //
-  //describe("Testing remove from wearablesConfig", async () => {
-  //  it("Should remove elements from wearablesConfig", async () => {
-  //    let addresses: string[] = [];
-  //    for (let i = 0; i < 10; i++) {
-  //      addresses.push(
-  //        ethers.utils.computeAddress(
-  //          ethers.utils.keccak256(ethers.utils.hexlify(i))
-  //        )
-  //      );
-  //    }
-  //    await WearablesConfigFacetWithOwner.createWearablesConfig("OMEGALUL", addresses);
-  //    let wearablesConfigsLength =
-  //      await WearablesConfigFacetWithOwner.getWearablesConfigsLength();
-  //    let wearablesConfig = await WearablesConfigFacetWithOwner.getWearablesConfig(
-  //      wearablesConfigsLength
-  //    );
-  //    expect(wearablesConfig.addresses.length).to.equal(10);
-  //
-  //    await WearablesConfigFacetWithOwner.removeAddressesFromWearablesConfig(
-  //      wearablesConfigsLength,
-  //      [addresses[0], addresses[5], addresses[9]]
-  //    );
-  //
-  //    wearablesConfig = await WearablesConfigFacetWithOwner.getWearablesConfig(wearablesConfigsLength);
-  //    expect(wearablesConfig.addresses.length).to.equal(7);
-  //
-  //    for (let i = 1; i < 9; i++) {
-  //      expect(wearablesConfig.addresses).to.include(addresses[i]);
-  //      expect(
-  //        await WearablesConfigFacetWithOwner.isWearablesConfiged(
-  //          wearablesConfigsLength,
-  //          addresses[i]
-  //        )
-  //      ).to.be.gt(0);
-  //      if (i == 4) i++;
-  //    }
-  //    expect(
-  //      await WearablesConfigFacetWithOwner.isWearablesConfiged(
-  //        wearablesConfigsLength,
-  //        addresses[0]
-  //      )
-  //    ).to.be.eq(0);
-  //    expect(
-  //      await WearablesConfigFacetWithOwner.isWearablesConfiged(
-  //        wearablesConfigsLength,
-  //        addresses[5]
-  //      )
-  //    ).to.be.eq(0);
-  //    expect(
-  //      await WearablesConfigFacetWithOwner.isWearablesConfiged(
-  //        wearablesConfigsLength,
-  //        addresses[9]
-  //      )
-  //    ).to.be.eq(0);
-  //
-  //    // REMOVE THEM ALLLLLL
-  //    await WearablesConfigFacetWithOwner.removeAddressesFromWearablesConfig(
-  //      wearablesConfigsLength,
-  //      addresses
-  //    );
-  //    wearablesConfig = await WearablesConfigFacetWithOwner.getWearablesConfig(wearablesConfigsLength);
-  //    expect(wearablesConfig.addresses.length).to.equal(0);
-  //    for (let i = 0; i < 10; i++) {
-  //      expect(
-  //        await WearablesConfigFacetWithOwner.isWearablesConfiged(
-  //          wearablesConfigsLength,
-  //          addresses[i]
-  //        )
-  //      ).to.be.eq(0);
-  //    }
-  //  });
-  //});
+  describe("Testing createWearablesConfig with payment", async function () {
+    it("Should be able to create a 3rd for free", async function () {
+      // config #3
+      await wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test", wearablesToStore)
+      expect(
+        await wearablesConfigFacetWithOwner.getAavegotchiWearablesConfigCount(aavegotchiOwnerAddress, aavegotchiId)
+      ).to.equal(3);
+    });
+    it("Should not be able to create a 4th for free", async function () {
+      await expect(
+        wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test", wearablesToStore)
+      ).to.be.revertedWith("WearablesConfigFacet: Incorrect GHST value sent");
+    });
+  });
 });
