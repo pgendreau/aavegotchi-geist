@@ -24,6 +24,7 @@ describe("Testing Wearables Config", async function () {
   const aavegotchiId = 4895;
 
   let aavegotchiOwnerAddress: any;
+  let daoAddress: any;
   let aavegotchiFacet: AavegotchiFacet;
   let wearablesConfigFacetWithOwner: WearablesConfigFacet;
 
@@ -41,6 +42,11 @@ describe("Testing Wearables Config", async function () {
 
     //aavegotchiOwnerAddress = await aavegotchiFacet.ownerOf(aavegotchiId);
     aavegotchiOwnerAddress = "0x43FF4C088df0A425d1a519D3030A1a3DFff05CfD";
+
+    //const accounts = await ethers.getSigners();
+    //const ownerAddress = await accounts[0].getAddress();
+    //daoAddress = ownerAddress;
+    daoAddress = "0xb208f8BB431f580CC4b216826AFfB128cd1431aB";
 
     const wearablesConfigFacet = (await ethers.getContractAt(
       "WearablesConfigFacet",
@@ -174,6 +180,20 @@ describe("Testing Wearables Config", async function () {
       await expect(
         wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test", wearablesToStore)
       ).to.be.revertedWith("WearablesConfigFacet: Incorrect GHST value sent");
+    });
+    it("Should be able to pay for the 4th", async function () {
+      // compare owner balance before and after
+      //const ownerBalanceBefore = await ethers.provider.getBalance(aavegotchiOwnerAddress);
+      const daoBalanceBefore = await ethers.provider.getBalance(daoAddress);
+      await wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test 4th", wearablesToStore, { value: ethers.utils.parseEther("1") })
+      // compare balance before and after for dao address
+      //const ownerBalanceAfter = await ethers.provider.getBalance(aavegotchiOwnerAddress);
+      //expect(ownerBalanceAfter).to.equal(ownerBalanceBefore.sub(ethers.utils.parseEther("1")));
+      const daoBalanceAfter = await ethers.provider.getBalance(daoAddress);
+      expect(daoBalanceAfter).to.equal(daoBalanceBefore.add(ethers.utils.parseEther("1")));
+      expect(
+        await wearablesConfigFacetWithOwner.getWearablesConfigName(aavegotchiOwnerAddress, aavegotchiId, 3)
+      ).to.equal("Test 4th");
     });
   });
 });
