@@ -27,7 +27,7 @@ describe("Testing Wearables Config", async function () {
   let aavegotchiFacet: AavegotchiFacet;
   let wearablesConfigFacetWithOwner: WearablesConfigFacet;
 
-  beforeEach(async function () {
+  before(async function () {
     await resetChain(hre);
     // workaround for issue https://github.com/NomicFoundation/hardhat/issues/5511
     await helpers.mine()
@@ -57,7 +57,6 @@ describe("Testing Wearables Config", async function () {
 
   describe("Testing createWearablesConfig", async function () {
     it("Should revert if wearables list is invalid", async function () {
-      console.log(await wearablesConfigFacetWithOwner.getAavegotchiWearablesConfigCount(aavegotchiOwnerAddress, aavegotchiId));
       const invalidWearables = new Array(16).fill(1);
       await expect(
         wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "test", invalidWearables)
@@ -67,14 +66,12 @@ describe("Testing Wearables Config", async function () {
     });
 
     it("Should revert if wearablesConfig name is empty", async function () {
-      console.log(await wearablesConfigFacetWithOwner.getAavegotchiWearablesConfigCount(aavegotchiOwnerAddress, aavegotchiId));
       await expect(
         wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "", wearablesToStore)
       ).to.be.revertedWith("WearablesConfigFacet: WearablesConfig name cannot be blank");
     });
 
     it("Should succeed to create wearablesConfig if all parameters are valid", async function () {
-      console.log(await wearablesConfigFacetWithOwner.getAavegotchiWearablesConfigCount(aavegotchiOwnerAddress, aavegotchiId));
       const receipt = await (
         await wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test", wearablesToStore)
       ).wait();
@@ -99,8 +96,6 @@ describe("Testing Wearables Config", async function () {
   describe("Testing updateWearablesConfig", async function () {
     it("Should be able to update existing WearablesConfig if all parameters are valid", async function () {
       const newWearablesToStore = new Array(16).fill(0);
-      console.log(await wearablesConfigFacetWithOwner.getAavegotchiWearablesConfigCount(aavegotchiOwnerAddress, aavegotchiId));
-      await wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test", wearablesToStore);
       const receipt = await (
         await wearablesConfigFacetWithOwner.updateWearablesConfig(aavegotchiId, 0, "New Name", newWearablesToStore)
       ).wait();
@@ -125,20 +120,30 @@ describe("Testing Wearables Config", async function () {
       ).to.be.revertedWith("WearablesConfigFacet: invalid id, WearablesConfig not found");
     });
   });
-  describe("Testing isValidWearablesConfig", async function () {
+  describe("Testing wearablesConfigExists", async function () {
     it("Should return true for valid wearablesConfig", async function () {
-      console.log(await wearablesConfigFacetWithOwner.getAavegotchiWearablesConfigCount(aavegotchiOwnerAddress, aavegotchiId));
-      await wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test", wearablesToStore)
       expect(
-        await wearablesConfigFacetWithOwner.isValidWearablesConfig(aavegotchiOwnerAddress, aavegotchiId, 0)
+        await wearablesConfigFacetWithOwner.wearablesConfigExists(aavegotchiOwnerAddress, aavegotchiId, 0)
       ).to.be.true;
     });
     it("Should return false for invalid wearablesConfig", async function () {
-      console.log(await wearablesConfigFacetWithOwner.getAavegotchiWearablesConfigCount(aavegotchiOwnerAddress, aavegotchiId));
-      await wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test", wearablesToStore)
       expect(
-        await wearablesConfigFacetWithOwner.isValidWearablesConfig(aavegotchiOwnerAddress, aavegotchiId, 99)
+        await wearablesConfigFacetWithOwner.wearablesConfigExists(aavegotchiOwnerAddress, aavegotchiId, 99)
       ).to.be.false;
+    });
+  });
+  describe("Testing getAavegotchiWearablesConfigCount", async function () {
+    it("Should return the right amount of wearablesConfig", async function () {
+      expect(
+        await wearablesConfigFacetWithOwner.getAavegotchiWearablesConfigCount(aavegotchiOwnerAddress, aavegotchiId)
+      ).to.equal(1);
+      await wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "test", wearablesToStore)
+      expect(
+        await wearablesConfigFacetWithOwner.getAavegotchiWearablesConfigCount(aavegotchiOwnerAddress, aavegotchiId)
+      ).to.equal(2);
+      expect(
+        await wearablesConfigFacetWithOwner.getAavegotchiWearablesConfigCount(aavegotchiOwnerAddress, 2499)
+      ).to.equal(0);
     });
   });
 

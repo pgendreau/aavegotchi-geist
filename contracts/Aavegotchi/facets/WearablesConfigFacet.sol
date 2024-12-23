@@ -110,7 +110,7 @@ contract WearablesConfigFacet is Modifiers {
     /// @param _tokenId The ID of the aavegotchi to update the wearables configuration for
     /// @param _wearablesConfigId The ID of the wearables configuration to update
     /// @return exists true if the wearables config exists
-    function isValidWearablesConfig(address _owner, uint256 _tokenId, uint8 _wearablesConfigId) external view returns (bool exists) {
+    function wearablesConfigExists(address _owner, uint256 _tokenId, uint8 _wearablesConfigId) external view returns (bool exists) {
         exists = LibWearablesConfig._wearablesConfigExists(_owner, _tokenId, _wearablesConfigId);
     }
 
