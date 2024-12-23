@@ -19,9 +19,9 @@ contract WearablesConfigFacet is Modifiers {
 
     uint256 constant MAX_UINT8 = 2**8 - 1;
 
-    event WearablesConfigCreated(address indexed owner, uint256 indexed tokenId, uint256 indexed wearablesConfigId, uint256[EQUIPPED_WEARABLE_SLOTS] wearables, uint256 value);
-    event WearablesConfigUpdated(address indexed owner, uint256 indexed tokenId, uint256 indexed wearablesConfigId, uint256[EQUIPPED_WEARABLE_SLOTS] wearables);
-    event WearablesConfigPaymentReceived(address indexed owner, uint256 indexed tokenId, uint256 indexed wearablesConfigId, uint256 value);
+    event WearablesConfigCreated(address indexed owner, uint256 indexed tokenId, uint8 indexed wearablesConfigId, uint16[EQUIPPED_WEARABLE_SLOTS] wearables, uint256 value);
+    event WearablesConfigUpdated(address indexed owner, uint256 indexed tokenId, uint8 indexed wearablesConfigId, uint16[EQUIPPED_WEARABLE_SLOTS] wearables);
+    event WearablesConfigPaymentReceived(address indexed owner, uint256 indexed tokenId, uint8 indexed wearablesConfigId, uint256 value);
 
     /**
      * @notice Creates and stores a new wearables configuration (max 255 per Aavegotchi per owner).
@@ -33,7 +33,7 @@ contract WearablesConfigFacet is Modifiers {
     function createWearablesConfig(
         uint256 _tokenId,
         string calldata _name,
-        uint256[EQUIPPED_WEARABLE_SLOTS] calldata _wearablesToStore
+        uint16[EQUIPPED_WEARABLE_SLOTS] calldata _wearablesToStore
     )
         external
         payable
@@ -85,7 +85,7 @@ contract WearablesConfigFacet is Modifiers {
         uint256 _tokenId,
         uint8 _wearablesConfigId,
         string calldata _name,
-        uint256[EQUIPPED_WEARABLE_SLOTS] calldata _wearablesToStore
+        uint16[EQUIPPED_WEARABLE_SLOTS] calldata _wearablesToStore
     )
         external
     {
@@ -139,7 +139,7 @@ contract WearablesConfigFacet is Modifiers {
     /// @param _tokenId The ID of the aavegotchi to update the wearables configuration for
     /// @param _wearablesConfigId The ID of the wearables configuration to update
     /// @return wearables The wearables stored for this wearables config
-    function getWearablesConfigWearables(address _owner, uint256 _tokenId, uint8 _wearablesConfigId) external view returns (uint256[EQUIPPED_WEARABLE_SLOTS] memory wearables) {
+    function getWearablesConfigWearables(address _owner, uint256 _tokenId, uint8 _wearablesConfigId) external view returns (uint16[EQUIPPED_WEARABLE_SLOTS] memory wearables) {
         require(LibWearablesConfig._wearablesConfigExists(_owner, _tokenId, _wearablesConfigId), "WearablesConfigFacet: invalid id, WearablesConfig not found");
         return s.gotchiWearableConfigs[_tokenId][_owner][_wearablesConfigId].wearables;
     }

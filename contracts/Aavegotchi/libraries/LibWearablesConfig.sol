@@ -32,7 +32,7 @@ library LibWearablesConfig {
     /// @notice Checks if a wearables configuration consist of valid wearables and are for the correct slot
     /// @param _wearablesToStore The wearables to store
     /// @return valid True if the wearables configuration is valid and false otherwise
-    function _checkValidWearables(uint256[EQUIPPED_WEARABLE_SLOTS] memory _wearablesToStore) internal view returns (bool valid) {
+    function _checkValidWearables(uint16[EQUIPPED_WEARABLE_SLOTS] memory _wearablesToStore) internal view returns (bool valid) {
         bool valid = true;
         AppStorage storage s = LibAppStorage.diamondStorage();
         for (uint256 slot; slot < EQUIPPED_WEARABLE_SLOTS; slot++) {

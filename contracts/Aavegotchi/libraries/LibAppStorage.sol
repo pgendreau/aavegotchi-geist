@@ -254,7 +254,7 @@ struct ERC1155BuyOrder {
 
 struct WearablesConfig {
     string name;
-    uint256[EQUIPPED_WEARABLE_SLOTS] wearables;
+    uint16[EQUIPPED_WEARABLE_SLOTS] wearables;
 }
 
 struct AppStorage {

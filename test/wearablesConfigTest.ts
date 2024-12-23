@@ -86,14 +86,31 @@ describe("Testing Wearables Config", async function () {
       );
       const wearablesConfigId = event!.args!.wearablesConfigId;
       expect(wearablesConfigId).to.equal(0);
-      // check wearablesConfig name
+    });
+  });
+
+  describe("Testing getWearablesConfigName", async function () {
+    it("Should revert if invalid wearablesConfig id", async function () {
+      await expect(
+        wearablesConfigFacetWithOwner.getWearablesConfigName(aavegotchiOwnerAddress, aavegotchiId, 99)
+      ).to.be.revertedWith("WearablesConfigFacet: invalid id, WearablesConfig not found");
+    });
+    it("Should return the name of a valid wearablesConfig id", async function () {
       expect(
         await wearablesConfigFacetWithOwner.getWearablesConfigName(aavegotchiOwnerAddress, aavegotchiId, 0)
       ).to.equal("Test");
-      // check wearablesConfig stored wearables
-      const wearables = await wearablesConfigFacetWithOwner.getWearablesConfigWearables(aavegotchiOwnerAddress, aavegotchiId, 0);
+    });
+  });
+
+  describe("Testing getWearablesConfigWearables", async function () {
+    it("Should revert if invalid wearablesConfig id", async function () {
+      await expect(
+        wearablesConfigFacetWithOwner.getWearablesConfigWearables(aavegotchiOwnerAddress, aavegotchiId, 99)
+      ).to.be.revertedWith("WearablesConfigFacet: invalid id, WearablesConfig not found");
+    });
+    it("Should return the wearables array of a valid wearablesConfig id", async function () {
       expect(
-        wearables.map(bigNumber => bigNumber.toNumber())
+        await wearablesConfigFacetWithOwner.getWearablesConfigWearables(aavegotchiOwnerAddress, aavegotchiId, 0)
       ).to.eql(wearablesToStore);
     });
   });
@@ -107,7 +124,7 @@ describe("Testing Wearables Config", async function () {
     it("Should return name and wearables array if valid wearablesConfig id", async function () {
       const wearablesConfig = await wearablesConfigFacetWithOwner.getWearablesConfig(aavegotchiOwnerAddress, aavegotchiId, 0);
       expect(wearablesConfig.name).to.equal("Test");
-      expect(wearablesConfig.wearables.map(bigNumber => bigNumber.toNumber())).to.eql(wearablesToStore);
+      expect(wearablesConfig.wearables).to.eql(wearablesToStore);
     });
   });
 
@@ -122,14 +139,13 @@ describe("Testing Wearables Config", async function () {
         (event) => event.event === "WearablesConfigUpdated"
       );
       expect(event!.args!.wearablesConfigId).to.equal(0);
-      // check wearablesConfig name
+      // check wearablesConfig name has been updated
       expect(
         await wearablesConfigFacetWithOwner.getWearablesConfigName(aavegotchiOwnerAddress, aavegotchiId, 0)
       ).to.equal("New Name");
-      // check wearablesConfig stored wearables
-      const wearables = await wearablesConfigFacetWithOwner.getWearablesConfigWearables(aavegotchiOwnerAddress, aavegotchiId, 0);
+      // check wearablesConfig stored wearables have been updated
       expect(
-        wearables.map(bigNumber => bigNumber.toNumber())
+        await wearablesConfigFacetWithOwner.getWearablesConfigWearables(aavegotchiOwnerAddress, aavegotchiId, 0)
       ).to.eql(newWearablesToStore);
     });
     it("Should revert if invalid wearablesConfig id", async function () {
