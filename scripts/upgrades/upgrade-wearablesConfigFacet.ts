@@ -16,8 +16,8 @@ export async function upgrade() {
       facetName: "WearablesConfigFacet",
       //addSelectors: [],
       addSelectors: [
-        'function createWearablesConfig(uint256 _tokenId, string _name, uint256[16] _wearablesToStore) external payable',
-        'function updateWearablesConfig(uint256 _tokenId, uint8 _wearablesConfigId, string _name, uint256[16] _wearablesToStore) external',
+        'function createWearablesConfig(uint256 _tokenId, string _name, uint16[16] _wearablesToStore) external payable',
+        'function updateWearablesConfig(uint256 _tokenId, uint8 _wearablesConfigId, string _name, uint16[16] _wearablesToStore) external',
         'function getWearablesConfig(address _owner, uint256 _tokenId, uint8 _wearablesConfigId) external view',
         'function getWearablesConfigName(address _owner, uint256 _tokenId, uint8 _wearablesConfigId) external view',
         'function getWearablesConfigWearables(address _owner, uint256 _tokenId, uint8 _wearablesConfigId) external view',
