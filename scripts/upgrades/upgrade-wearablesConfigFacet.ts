@@ -22,7 +22,7 @@ export async function upgrade() {
         'function getWearablesConfigName(address _owner, uint256 _tokenId, uint8 _wearablesConfigId) external view',
         'function getWearablesConfigWearables(address _owner, uint256 _tokenId, uint8 _wearablesConfigId) external view',
         'function getAavegotchiWearablesConfigCount(address _owner, uint256 _tokenId) external view',
-        'function isValidWearablesConfig(address _owner, uint256 _tokenId, uint8 _wearablesConfigId) external view',
+        'function wearablesConfigExists(address _owner, uint256 _tokenId, uint8 _wearablesConfigId) external view',
       ],
       removeSelectors: [],
     },
