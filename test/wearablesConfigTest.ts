@@ -6,6 +6,7 @@ import { ethers, network } from "hardhat";
 import chai from "chai";
 import { upgrade } from "../scripts/upgrades/upgrade-wearablesConfigFacet";
 import { impersonate, resetChain } from "../scripts/helperFunctions";
+import { fundSigner } from "../helpers/helpers";
 import {
   AavegotchiFacet,
   WearablesConfigFacet,
@@ -53,6 +54,8 @@ describe("Testing Wearables Config", async function () {
       diamondAddress
     )) as WearablesConfigFacet;
 
+    await fundSigner(network, aavegotchiOwnerAddress, 1000);
+
     wearablesConfigFacetWithOwner = await impersonate(
       aavegotchiOwnerAddress,
       wearablesConfigFacet,
@@ -77,7 +80,7 @@ describe("Testing Wearables Config", async function () {
     });
     it("Should succeed to create wearablesConfig if all parameters are valid", async function () {
       const receipt = await (
-        // config #1
+        // config #1 (id: 0)
         await wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test", wearablesToStore)
       ).wait();
       // verify wearablesConfig id from event
@@ -173,7 +176,7 @@ describe("Testing Wearables Config", async function () {
       expect(
         await wearablesConfigFacetWithOwner.getAavegotchiWearablesConfigCount(aavegotchiOwnerAddress, aavegotchiId)
       ).to.equal(1);
-      // config #2
+      // config #2 (id: 1)
       await wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test", wearablesToStore)
       expect(
         await wearablesConfigFacetWithOwner.getAavegotchiWearablesConfigCount(aavegotchiOwnerAddress, aavegotchiId)
@@ -186,7 +189,7 @@ describe("Testing Wearables Config", async function () {
 
   describe("Testing createWearablesConfig with payment", async function () {
     it("Should be able to create a 3rd for free", async function () {
-      // config #3
+      // config #3 (id: 2)
       await wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test", wearablesToStore)
       expect(
         await wearablesConfigFacetWithOwner.getAavegotchiWearablesConfigCount(aavegotchiOwnerAddress, aavegotchiId)
@@ -201,6 +204,7 @@ describe("Testing Wearables Config", async function () {
       // compare owner balance before and after
       //const ownerBalanceBefore = await ethers.provider.getBalance(aavegotchiOwnerAddress);
       const daoBalanceBefore = await ethers.provider.getBalance(daoAddress);
+      // config #4 (id: 3)
       await wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test 4th", wearablesToStore, { value: ethers.utils.parseEther("1") })
       // compare balance before and after for dao address
       //const ownerBalanceAfter = await ethers.provider.getBalance(aavegotchiOwnerAddress);
@@ -210,6 +214,18 @@ describe("Testing Wearables Config", async function () {
       expect(
         await wearablesConfigFacetWithOwner.getWearablesConfigName(aavegotchiOwnerAddress, aavegotchiId, 3)
       ).to.equal("Test 4th");
+    });
+    it("Shouldn't be able to create more than 255", async function () {
+      for (let i = 4; i < 255; i++) {
+        // config #5-255 (id: 4-254)
+        await wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test", wearablesToStore, { value: ethers.utils.parseEther("1") });
+      }
+      expect(
+        await wearablesConfigFacetWithOwner.getAavegotchiWearablesConfigCount(aavegotchiOwnerAddress, aavegotchiId)
+      ).to.equal(255);
+      await expect(
+        wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test 256th", wearablesToStore, { value: ethers.utils.parseEther("1") })
+      ).to.be.revertedWith("WearablesConfigFacet: No more wearables config slots available");
     });
   });
 });
