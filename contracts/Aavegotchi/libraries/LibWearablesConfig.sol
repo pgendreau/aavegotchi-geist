@@ -33,11 +33,13 @@ library LibWearablesConfig {
     /// @param _wearablesToStore The wearables to store
     /// @return valid True if the wearables configuration is valid and false otherwise
     function _checkValidWearables(uint16[EQUIPPED_WEARABLE_SLOTS] memory _wearablesToStore) internal view returns (bool valid) {
-        bool valid = true;
         AppStorage storage s = LibAppStorage.diamondStorage();
+        uint256 itemTypesLength = s.itemTypes.length;
+        bool valid = true;
         for (uint256 slot; slot < EQUIPPED_WEARABLE_SLOTS; slot++) {
             uint256 toStoreId = _wearablesToStore[slot];
             if (toStoreId != 0) {
+                require(itemTypesLength > toStoreId, "LibWearablesConfig: Item type does not exist");
                 ItemType storage itemType = s.itemTypes[toStoreId];
                 if (itemType.category != LibItems.ITEM_CATEGORY_WEARABLE) {
                   valid = false;
