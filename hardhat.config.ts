@@ -71,7 +71,8 @@ export default {
         // url: process.env.POLTER_TESTNET_URL,
         // url: process.env.GEIST_URL,
         // timeout: 12000000,
-        blockNumber: 65731307, // polygon
+        //blockNumber: 65731307, // polygon
+        blockNumber: 66143761, // polygon
         //blocknumber: 28294 // polter
       },
       blockGasLimit: 20000000,
