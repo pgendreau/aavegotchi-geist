@@ -6,7 +6,6 @@ import { ethers, network } from "hardhat";
 import chai from "chai";
 import { upgrade } from "../scripts/upgrades/upgrade-wearablesConfigFacet";
 import { impersonate, resetChain } from "../scripts/helperFunctions";
-import { fundSigner } from "../helpers/helpers";
 import {
   AavegotchiFacet,
   WearablesConfigFacet,
@@ -61,8 +60,6 @@ describe("Testing Wearables Config", async function () {
       "WearablesConfigFacet",
       diamondAddress
     )) as WearablesConfigFacet;
-
-    //await fundSigner(network, aavegotchiOwnerAddress, 1000);
 
     wearablesConfigFacetWithOwner = await impersonate(
       aavegotchiOwnerAddress,
