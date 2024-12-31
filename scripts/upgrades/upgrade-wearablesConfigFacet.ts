@@ -6,7 +6,6 @@ import {
 } from "../../tasks/deployUpgrade";
 import {
   diamondOwner,
-  impersonate,
   maticDiamondAddress,
 } from "../helperFunctions";
 
@@ -14,7 +13,6 @@ export async function upgrade() {
   const facets: FacetsAndAddSelectors[] = [
     {
       facetName: "WearablesConfigFacet",
-      //addSelectors: [],
       addSelectors: [
         'function createWearablesConfig(uint256 _tokenId, string _name, uint16[16] _wearablesToStore) external payable',
         'function updateWearablesConfig(uint256 _tokenId, uint8 _wearablesConfigId, string _name, uint16[16] _wearablesToStore) external',
@@ -41,7 +39,7 @@ export async function upgrade() {
     facetsAndAddSelectors: joined,
     useLedger: false,
     useMultisig: false,
-		freshDeployment: true,
+    freshDeployment: true,
     // initAddress
     // initCalldata
   };
