@@ -24,6 +24,7 @@
     "@typechain/ethers-v5": "^7.1.2",
     "@typechain/hardhat": "^2.3.0",
     "@types/chai": "^4.2.22",
+    "@types/lodash": "^4.17.13",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.9.6",
     "chai": "^4.3.4",
@@ -46,7 +47,7 @@
   "dependencies": {
     "@anders-t/ethers-ledger": "^1.0.4",
     "@ethersproject/experimental": "^5.4.0",
-    "@ethersproject/hardware-wallets": "github:mudgen/ethers-ledger",
+    "@ethersproject/hardware-wallets": "https://github.com/mudgen/ethers-ledger",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.11",
     "@nomiclabs/hardhat-etherscan": "^3.0.0",
     "@openzeppelin/contracts": "^4.5.0",
@@ -61,6 +62,7 @@
     "hardhat": "^2.22.5",
     "merkletreejs": "^0.3.9",
     "node-hid": "^2.1.1",
-    "solc": "^0.8.7-fixed"
+    "solc": "^0.8.7-fixed",
+    "solmate": "^6.2.0"
   }
 }

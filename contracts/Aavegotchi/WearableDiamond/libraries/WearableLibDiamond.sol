@@ -14,7 +14,6 @@ import {LibMeta} from "../../../shared/libraries/LibMeta.sol";
 
 library WearableLibDiamond {
     bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.diamond.storage");
-    address constant AAVEGOTCHI_DIAMOND = 0x86935F11C86623deC8a25696E1C19a8659CbF95d;
 
     struct FacetAddressAndPosition {
         address facetAddress;
@@ -41,6 +40,7 @@ library WearableLibDiamond {
         address contractOwner;
         //aavegotchi master diamond address
         address aavegotchiDiamond;
+        address itemGeistBridge;
     }
 
     function diamondStorage() internal pure returns (DiamondStorage storage ds) {
@@ -48,6 +48,10 @@ library WearableLibDiamond {
         assembly {
             ds.slot := position
         }
+    }
+
+    function aavegotchiDiamond() internal view returns (address) {
+        return diamondStorage().aavegotchiDiamond;
     }
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
@@ -67,17 +71,13 @@ library WearableLibDiamond {
         require(LibMeta.msgSender() == diamondStorage().contractOwner, "LibDiamond: Must be contract owner");
     }
 
-    function enforceIsDiamond() internal view {
-        require(msg.sender == AAVEGOTCHI_DIAMOND, "LibDiamond: Caller must be Aavegotchi Diamond");
+    function onlyAavegotchiDiamond() internal view {
+        require(msg.sender == diamondStorage().aavegotchiDiamond, "LibDiamond: Caller must be Aavegotchi Diamond");
     }
 
     event DiamondCut(IDiamondCut.FacetCut[] _diamondCut, address _init, bytes _calldata);
 
-    function addDiamondFunctions(
-        address _diamondCutFacet,
-        address _diamondLoupeFacet,
-        address _ownershipFacet
-    ) internal {
+    function addDiamondFunctions(address _diamondCutFacet, address _diamondLoupeFacet, address _ownershipFacet) internal {
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](3);
         bytes4[] memory functionSelectors = new bytes4[](1);
         functionSelectors[0] = IDiamondCut.diamondCut.selector;
@@ -101,11 +101,7 @@ library WearableLibDiamond {
     }
 
     // Internal function version of diamondCut
-    function diamondCut(
-        IDiamondCut.FacetCut[] memory _diamondCut,
-        address _init,
-        bytes memory _calldata
-    ) internal {
+    function diamondCut(IDiamondCut.FacetCut[] memory _diamondCut, address _init, bytes memory _calldata) internal {
         for (uint256 facetIndex; facetIndex < _diamondCut.length; facetIndex++) {
             IDiamondCut.FacetCutAction action = _diamondCut[facetIndex].action;
             if (action == IDiamondCut.FacetCutAction.Add) {

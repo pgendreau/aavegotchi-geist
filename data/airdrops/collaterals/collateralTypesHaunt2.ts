@@ -1,4 +1,6 @@
-const collaterals = [
+import { Collateral } from "./collateralTypes";
+
+export const collaterals: Collateral[] = [
   {
     name: "amDAI",
     kovanAddress: "0xdcf0af9e59c002fa3aa091a46196b37530fd48a8",
@@ -107,7 +109,7 @@ const collaterals = [
   */
 ];
 
-const testCollaterals = [
+export const testCollaterals: Collateral[] = [
   {
     name: "GHST",
     kovanAddress: "",
@@ -122,37 +124,3 @@ const testCollaterals = [
     conversionRate: 50000, // 1 DAI equals 1 GHST
   },
 ];
-
-function getCollaterals(network, ghstAddress) {
-  const testing = ["hardhat", "localhost"].includes(network);
-  const collateralArr = testing ? testCollaterals : collaterals;
-  const collateralTypes = [];
-  for (const collateralType of collateralArr) {
-    const collateralTypeInfo = {
-      primaryColor: "0x" + collateralType.primaryColor.slice(1),
-      secondaryColor: "0x" + collateralType.secondaryColor.slice(1),
-      cheekColor: "0x" + collateralType.cheekColor.slice(1),
-      svgId: collateralType.svgId,
-      eyeShapeSvgId: collateralType.eyeShapeSvgId,
-      modifiers: collateralType.modifiers,
-      conversionRate: collateralType.conversionRate,
-      delisted: false,
-    };
-    const item = {};
-    if (network === "kovan") {
-      item.collateralType = collateralType.kovanAddress;
-    } else if (network === "hardhat") {
-      item.collateralType = ghstAddress;
-    } else if (network === "mainnet") {
-      item.collateralType = collateralType.mainnetAddress;
-    } else if (network === "matic") {
-      item.collateralType = collateralType.maticAddress;
-    }
-    item.collateralTypeInfo = collateralTypeInfo;
-    collateralTypes.push(item);
-  }
-
-  return collateralTypes;
-}
-
-exports.getCollaterals = getCollaterals;
