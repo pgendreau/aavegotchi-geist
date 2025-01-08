@@ -7,7 +7,7 @@ import {LibERC721} from "../../shared/libraries/LibERC721.sol";
 import {INFTBridge} from "../../shared/interfaces/INFTBridge.sol";
 import {ItemType} from "../libraries/LibItems.sol";
 import {ItemsFacet} from "../facets/ItemsFacet.sol";
-
+import {LibERC721Marketplace} from "../libraries/LibERC721Marketplace.sol";
 contract PolygonXGeistBridgeFacet is Modifiers {
     event GotchiGeistBridgeUpdate(address _newBridge);
     event ItemGeistBridgeUpdate(address _newBridge);
@@ -37,6 +37,9 @@ contract PolygonXGeistBridgeFacet is Modifiers {
     function bridgeGotchi(address _receiver, uint256 _tokenId, uint256 _msgGasLimit, address _connector) external payable {
         require(s.gotchGeistBridge != address(0), "PolygonXGeistBridgeFacet: Geist bridge not set");
         require(s.itemGeistBridge != address(0), "PolygonXGeistBridgeFacet: Item bridge not set");
+
+        //Cancel the listing so the gotchi is unlocked
+        LibERC721Marketplace.cancelERC721Listing(address(this), _tokenId, msg.sender);
 
         Aavegotchi memory _aavegotchi = s.aavegotchis[_tokenId];
 
@@ -78,7 +81,6 @@ contract PolygonXGeistBridgeFacet is Modifiers {
     }
 
     function burn(address _from, uint _tokenId) external onlyGotchiGeistBridge {
-        // burn items before burn gotchi
         Aavegotchi memory _aavegotchi = s.aavegotchis[_tokenId];
 
         // burn gotchi
