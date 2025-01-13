@@ -29,14 +29,22 @@ describe("Testing Batch Equip Wearables", async function () {
   const wearablesDiamondAddress = deploymentConfig.wearableDiamond as string;
   const wearables = [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   const otherWearables = [0, 0, 0, 0, 205, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-  const wearablesWithInvalidId = [418, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-  const wearablesWithInvalidSlot = [104, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-  const wearablesWithRentals = [0, 0, 0, 1, 205, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-  const depositIdsOfWearableRentals = [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  const wearablesWithInvalidId = [
+    418, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  ];
+  const wearablesWithInvalidSlot = [
+    104, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  ];
+  const wearablesWithRentals = [
+    0, 0, 0, 1, 205, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  ];
+  const depositIdsOfWearableRentals = [
+    0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  ];
   const emptyWearables = new Array(16).fill(0);
   const aavegotchiId = 15748;
   const anotherOwnerAavegotchiId = 19488;
-  const anotherWearablesOwner = "0xC3c2e1Cf099Bc6e1fA94ce358562BCbD5cc59FE5"
+  const anotherWearablesOwner = "0xC3c2e1Cf099Bc6e1fA94ce358562BCbD5cc59FE5";
   const nullAddress = ethers.constants.AddressZero;
 
   let aavegotchiOwnerAddress: any;
@@ -61,154 +69,179 @@ describe("Testing Batch Equip Wearables", async function () {
 
     aavegotchiFacet = (await ethers.getContractAt(
       "contracts/Aavegotchi/facets/AavegotchiFacet.sol:AavegotchiFacet",
-      diamondAddress
+      diamondAddress,
     )) as AavegotchiFacet;
 
     wearablesFacet = (await ethers.getContractAt(
       "contracts/Aavegotchi/WearableDiamond/facets/WearablesFacet.sol:WearablesFacet",
-      wearablesDiamondAddress
+      wearablesDiamondAddress,
     )) as WearablesFacet;
 
     itemsRolesRegistryFacet = await ethers.getContractAt(
       "ItemsRolesRegistryFacet",
-      diamondAddress
+      diamondAddress,
     );
 
     let itemsFacet = (await ethers.getContractAt(
       "contracts/Aavegotchi/facets/ItemsFacet.sol:ItemsFacet",
-      diamondAddress
+      diamondAddress,
     )) as ItemsFacet;
 
     aavegotchiOwnerAddress = await aavegotchiFacet.ownerOf(aavegotchiId);
-    anotherAavegotchiOwnerAddress = await aavegotchiFacet.ownerOf(anotherOwnerAavegotchiId);
+    anotherAavegotchiOwnerAddress = await aavegotchiFacet.ownerOf(
+      anotherOwnerAavegotchiId,
+    );
 
+    let aavegotchiFacetWithOtherSigner: AavegotchiFacet = await impersonate(
+      anotherAavegotchiOwnerAddress,
+      aavegotchiFacet,
+      ethers,
+      network,
+    );
+    let wearablesFacetWithOtherSigner: WearablesFacet = await impersonate(
+      anotherWearablesOwner,
+      wearablesFacet,
+      ethers,
+      network,
+    );
 
-    let aavegotchiFacetWithOtherSigner: AavegotchiFacet = await impersonate(anotherAavegotchiOwnerAddress, aavegotchiFacet, ethers, network)
-    let wearablesFacetWithOtherSigner: WearablesFacet = await impersonate(anotherWearablesOwner, wearablesFacet, ethers, network)
+    await aavegotchiFacetWithOtherSigner.transferFrom(
+      anotherAavegotchiOwnerAddress,
+      aavegotchiOwnerAddress,
+      anotherOwnerAavegotchiId,
+    );
+    await wearablesFacetWithOtherSigner.safeTransferFrom(
+      anotherWearablesOwner,
+      aavegotchiOwnerAddress,
+      205,
+      1,
+      "0x",
+    );
 
-    await aavegotchiFacetWithOtherSigner.transferFrom(anotherAavegotchiOwnerAddress, aavegotchiOwnerAddress, anotherOwnerAavegotchiId);
-    await wearablesFacetWithOtherSigner.safeTransferFrom(anotherWearablesOwner, aavegotchiOwnerAddress, 205, 1, "0x");
-
-    gotchisOfOwner = await aavegotchiFacet.tokenIdsOfOwner(aavegotchiOwnerAddress);
+    gotchisOfOwner = await aavegotchiFacet.tokenIdsOfOwner(
+      aavegotchiOwnerAddress,
+    );
     console.log("gotchisOfOwner", gotchisOfOwner);
 
     wearablesFacetWithOwner = await impersonate(
       aavegotchiOwnerAddress,
       wearablesFacet,
       ethers,
-      network
+      network,
     );
 
     itemsFacetWithOwner = await impersonate(
       aavegotchiOwnerAddress,
       itemsFacet,
       ethers,
-      network
+      network,
     );
 
     itemsFacetWithOtherOwner = await impersonate(
       anotherAavegotchiOwnerAddress,
       itemsFacet,
       ethers,
-      network
+      network,
     );
 
     aavegotchiFacetWithOwner = await impersonate(
       aavegotchiOwnerAddress,
       aavegotchiFacet,
       ethers,
-      network
+      network,
     );
 
     itemsRolesRegistryFacetWithOwner = await impersonate(
       aavegotchiOwnerAddress,
       itemsRolesRegistryFacet,
       ethers,
-      network
+      network,
     );
 
     await itemsFacetWithOwner.equipWearables(gotchisOfOwner[1], otherWearables);
   });
 
   describe("Testing batch functions to equip wearables", async function () {
-
-    async function getWearables(_tokenId: number) : number[] {
-      const currentWearables = await itemsFacetWithOwner.equippedWearables(_tokenId);
+    async function getWearables(_tokenId: number): number[] {
+      const currentWearables =
+        await itemsFacetWithOwner.equippedWearables(_tokenId);
       return currentWearables;
     }
 
     it("Should unequip all wearables from multiple gotchis", async function () {
       await itemsFacetWithOwner.batchEquipWearables(
-        [
-          gotchisOfOwner[0],
-          gotchisOfOwner[1],
-        ],
-        [
-          emptyWearables,
-          emptyWearables,
-        ]
+        [gotchisOfOwner[0], gotchisOfOwner[1]],
+        [emptyWearables, emptyWearables],
       );
-      expect(await getWearables(gotchisOfOwner[0])).to.deep.equal(emptyWearables);
-      expect(await getWearables(gotchisOfOwner[1])).to.deep.equal(emptyWearables);
+      expect(await getWearables(gotchisOfOwner[0])).to.deep.equal(
+        emptyWearables,
+      );
+      expect(await getWearables(gotchisOfOwner[1])).to.deep.equal(
+        emptyWearables,
+      );
 
       // reequip for next test
       await itemsFacetWithOwner.equipWearables(gotchisOfOwner[0], wearables);
-      await itemsFacetWithOwner.equipWearables(gotchisOfOwner[1], otherWearables);
+      await itemsFacetWithOwner.equipWearables(
+        gotchisOfOwner[1],
+        otherWearables,
+      );
     });
     it("Should be able to unequip and requip the same gotchi", async function () {
       await itemsFacetWithOwner.batchEquipWearables(
-        [
-          aavegotchiId,
-          aavegotchiId,
-        ],
-        [
-          emptyWearables,
-          wearables,
-        ]
+        [aavegotchiId, aavegotchiId],
+        [emptyWearables, wearables],
       );
       expect(await getWearables(aavegotchiId)).to.deep.equal(wearables);
     });
     it("Should be able to unequip from one gotchi to equip on the next", async function () {
       await itemsFacetWithOwner.batchEquipWearables(
-        [
-          gotchisOfOwner[0],
-          gotchisOfOwner[1],
-        ],
-        [
-          emptyWearables,
-          wearables,
-        ]
+        [gotchisOfOwner[0], gotchisOfOwner[1]],
+        [emptyWearables, wearables],
       );
-      expect(await getWearables(gotchisOfOwner[0])).to.deep.equal(emptyWearables);
+      expect(await getWearables(gotchisOfOwner[0])).to.deep.equal(
+        emptyWearables,
+      );
       expect(await getWearables(gotchisOfOwner[1])).to.deep.equal(wearables);
 
       // reequip for next test
-      await itemsFacetWithOwner.equipWearables(gotchisOfOwner[0], otherWearables);
+      await itemsFacetWithOwner.equipWearables(
+        gotchisOfOwner[0],
+        otherWearables,
+      );
     });
     it("Should be able to completely flip wearables between two gotchis", async function () {
       const firstGotchiId = gotchisOfOwner[0];
       const secondGotchiId = gotchisOfOwner[1];
-      const firstGotchiWearables = await itemsFacetWithOwner.equippedWearables(firstGotchiId);
-      const secondGotchiWearables = await itemsFacetWithOwner.equippedWearables(secondGotchiId);
+      const firstGotchiWearables =
+        await itemsFacetWithOwner.equippedWearables(firstGotchiId);
+      const secondGotchiWearables =
+        await itemsFacetWithOwner.equippedWearables(secondGotchiId);
       await itemsFacetWithOwner.batchEquipWearables(
-        [
-          firstGotchiId,
-          secondGotchiId,
-          firstGotchiId,
-          secondGotchiId,
-        ],
+        [firstGotchiId, secondGotchiId, firstGotchiId, secondGotchiId],
         [
           emptyWearables,
           emptyWearables,
           secondGotchiWearables,
           firstGotchiWearables,
-        ]
+        ],
       );
-      expect(await getWearables(firstGotchiId)).to.deep.equal(secondGotchiWearables);
-      expect(await getWearables(secondGotchiId)).to.deep.equal(firstGotchiWearables);
+      expect(await getWearables(firstGotchiId)).to.deep.equal(
+        secondGotchiWearables,
+      );
+      expect(await getWearables(secondGotchiId)).to.deep.equal(
+        firstGotchiWearables,
+      );
 
-      await itemsFacetWithOwner.equipWearables(gotchisOfOwner[0], emptyWearables);
-      await aavegotchiFacetWithOwner.transferFrom(aavegotchiOwnerAddress, anotherAavegotchiOwnerAddress, anotherOwnerAavegotchiId);
+      await itemsFacetWithOwner.equipWearables(
+        gotchisOfOwner[0],
+        emptyWearables,
+      );
+      await aavegotchiFacetWithOwner.transferFrom(
+        aavegotchiOwnerAddress,
+        anotherAavegotchiOwnerAddress,
+        anotherOwnerAavegotchiId,
+      );
     });
     it("Should unequip and requip wearables with rentals ", async function () {
       let CommitmentCreated: Commitment;
@@ -221,12 +254,18 @@ describe("Testing Batch Equip Wearables", async function () {
         tokenId: 1,
       });
 
-      depositIdsCounter = Number((await itemsRolesRegistryFacet.connect(aavegotchiOwnerAddress).callStatic.commitTokens(
-        CommitmentCreated.grantor,
-        CommitmentCreated.tokenAddress,
-        CommitmentCreated.tokenId,
-        CommitmentCreated.tokenAmount
-      )).toString());
+      depositIdsCounter = Number(
+        (
+          await itemsRolesRegistryFacet
+            .connect(aavegotchiOwnerAddress)
+            .callStatic.commitTokens(
+              CommitmentCreated.grantor,
+              CommitmentCreated.tokenAddress,
+              CommitmentCreated.tokenId,
+              CommitmentCreated.tokenAmount,
+            )
+        ).toString(),
+      );
       console.log(depositIdsCounter);
 
       GrantRoleData = await buildGrantRole({
@@ -234,14 +273,16 @@ describe("Testing Batch Equip Wearables", async function () {
         grantee: anotherAavegotchiOwnerAddress,
       });
 
-      await wearablesFacetWithOwner
-        .setApprovalForAll(itemsRolesRegistryFacet.address, true);
+      await wearablesFacetWithOwner.setApprovalForAll(
+        itemsRolesRegistryFacet.address,
+        true,
+      );
 
       await itemsRolesRegistryFacetWithOwner.commitTokens(
         CommitmentCreated.grantor,
         CommitmentCreated.tokenAddress,
         CommitmentCreated.tokenId,
-        CommitmentCreated.tokenAmount
+        CommitmentCreated.tokenAmount,
       );
       await itemsRolesRegistryFacetWithOwner.grantRole(
         GrantRoleData.depositId,
@@ -249,67 +290,45 @@ describe("Testing Batch Equip Wearables", async function () {
         GrantRoleData.grantee,
         GrantRoleData.expirationDate,
         GrantRoleData.revocable,
-        GrantRoleData.data
+        GrantRoleData.data,
       );
 
       await itemsFacetWithOtherOwner.batchEquipDelegatedWearables(
-        [
-          anotherOwnerAavegotchiId,
-          anotherOwnerAavegotchiId,
-        ],
-        [
-          emptyWearables,
-          wearablesWithRentals,
-        ],
-        [
-          emptyWearables,
-          depositIdsOfWearableRentals,
-        ]
+        [anotherOwnerAavegotchiId, anotherOwnerAavegotchiId],
+        [emptyWearables, wearablesWithRentals],
+        [emptyWearables, depositIdsOfWearableRentals],
       );
-      expect(await getWearables(anotherOwnerAavegotchiId)).to.deep.equal(wearablesWithRentals);
+      expect(await getWearables(anotherOwnerAavegotchiId)).to.deep.equal(
+        wearablesWithRentals,
+      );
     });
     it("Should revert if arguments are not all the same length ", async function () {
       await expect(
         itemsFacetWithOwner.batchEquipWearables(
-          [
-            gotchisOfOwner[0],
-            gotchisOfOwner[1],
-          ],
-          [
-            emptyWearables,
-          ]
-        )
-      ).to.be.revertedWith("ItemsFacet: _wearablesToEquip length not same as _tokenIds length");
+          [gotchisOfOwner[0], gotchisOfOwner[1]],
+          [emptyWearables],
+        ),
+      ).to.be.revertedWith(
+        "ItemsFacet: _wearablesToEquip length not same as _tokenIds length",
+      );
       await expect(
         itemsFacetWithOtherOwner.batchEquipDelegatedWearables(
-          [
-            anotherOwnerAavegotchiId,
-            anotherOwnerAavegotchiId,
-          ],
-          [
-            emptyWearables,
-          ],
-          [
-            emptyWearables,
-            emptyWearables,
-          ]
-        )
-      ).to.be.revertedWith("ItemsFacet: _wearablesToEquip length not same as _tokenIds length");
+          [anotherOwnerAavegotchiId, anotherOwnerAavegotchiId],
+          [emptyWearables],
+          [emptyWearables, emptyWearables],
+        ),
+      ).to.be.revertedWith(
+        "ItemsFacet: _wearablesToEquip length not same as _tokenIds length",
+      );
       await expect(
         itemsFacetWithOtherOwner.batchEquipDelegatedWearables(
-          [
-            aavegotchiId,
-            aavegotchiId,
-          ],
-          [
-            emptyWearables,
-            emptyWearables,
-          ],
-          [
-            emptyWearables,
-          ]
-        )
-      ).to.be.revertedWith("ItemsFacet: _depositIds length not same as _tokenIds length");
+          [aavegotchiId, aavegotchiId],
+          [emptyWearables, emptyWearables],
+          [emptyWearables],
+        ),
+      ).to.be.revertedWith(
+        "ItemsFacet: _depositIds length not same as _tokenIds length",
+      );
     });
   });
 });
