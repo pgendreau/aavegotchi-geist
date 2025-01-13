@@ -4,10 +4,7 @@ import {
   DeployUpgradeTaskArgs,
   FacetsAndAddSelectors,
 } from "../../tasks/deployUpgrade";
-import {
-  diamondOwner,
-  maticDiamondAddress,
-} from "../helperFunctions";
+import { loadDeploymentConfig } from "../deployFullDiamond";
 
 export async function upgrade() {
   const facets: FacetsAndAddSelectors[] = [
@@ -26,15 +23,14 @@ export async function upgrade() {
     },
   ];
 
+  const deploymentConfig = loadDeploymentConfig(63157);
+  const diamondAddress = deploymentConfig.aavegotchiDiamond as string;
+  const diamondOwnerAddress = deploymentConfig.itemManagers[0] as string;
+
   const joined = convertFacetAndSelectorsToString(facets);
 
-  const diamondOwnerAddress = await diamondOwner(maticDiamondAddress, ethers)
-
-  // todo: use deploymentConfig to detect args for Polter/Geist
   const args: DeployUpgradeTaskArgs = {
-    //diamondOwner: "0xd38Df837a1EAd12ee16f8b8b7E5F58703f841668", // polter-testnet
-    //diamondAddress: '0x226625C1B1174e7BaaE8cDC0432Db0e2ED83b7Ba', // polter-testnet
-    diamondAddress: maticDiamondAddress,
+    diamondAddress: diamondAddress,
     diamondOwner: diamondOwnerAddress,
     facetsAndAddSelectors: joined,
     useLedger: false,

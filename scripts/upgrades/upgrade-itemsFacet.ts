@@ -4,7 +4,7 @@ import {
   DeployUpgradeTaskArgs,
   FacetsAndAddSelectors,
 } from "../../tasks/deployUpgrade";
-import { maticDiamondAddress, maticDiamondUpgrader } from "../helperFunctions";
+import { loadDeploymentConfig } from "../deployFullDiamond";
 
 export async function upgrade() {
   const facets: FacetsAndAddSelectors[] = [
@@ -18,11 +18,15 @@ export async function upgrade() {
     },
   ];
 
+  const deploymentConfig = loadDeploymentConfig(63157);
+  const diamondAddress = deploymentConfig.aavegotchiDiamond as string;
+  const diamondOwner = deploymentConfig.itemManagers[0] as string;
+
   const joined = convertFacetAndSelectorsToString(facets);
 
   const args: DeployUpgradeTaskArgs = {
-    diamondAddress: maticDiamondAddress,
-    diamondOwner: maticDiamondUpgrader,
+    diamondAddress: diamondAddress,
+    diamondOwner: diamondOwner,
     facetsAndAddSelectors: joined,
     useLedger: false,
     useMultisig: false,
