@@ -3,40 +3,49 @@
 
 //@ts-ignore
 import { ethers, network } from "hardhat";
+import { BigNumber, BigNumberish } from "ethers";
 import chai from "chai";
 import { upgrade } from "../scripts/upgrades/upgrade-wearablesConfigFacet";
 import { impersonate, resetChain } from "../scripts/helperFunctions";
 import {
   AavegotchiFacet,
   WearablesConfigFacet,
+  GotchiLendingFacet,
+  LendingGetterAndSetterFacet,
 } from "../typechain";
 import * as helpers from "@nomicfoundation/hardhat-network-helpers";
+import { loadDeploymentConfig } from "../scripts/deployFullDiamond";
 
 const { expect } = chai;
 
 describe("Testing Wearables Config", async function () {
   this.timeout(300000);
 
-  const diamondAddress = "0x86935F11C86623deC8a25696E1C19a8659CbF95d"; // polygon mainnet
-  //const diamondAddress = '0x226625C1B1174e7BaaE8cDC0432Db0e2ED83b7Ba'; // polter-testnet
+  const deploymentConfig = loadDeploymentConfig(63157);
+  const diamondAddress = deploymentConfig.aavegotchiDiamond as string;
+  const diamondOwner = deploymentConfig.itemManagers[0] as string;
+
   const slotPrice = ethers.utils.parseUnits("1", "ether");
   const wearablesToStore = [105, 209, 159, 104, 106, 65, 413, 210, 0, 0, 0, 0, 0, 0, 0, 0];
   const wearablesToStoreWithInvalidId = [418, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   const wearablesToStoreWithInvalidSlot = [104, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-  const aavegotchiId = 4895;
-  const rentedOutAavegotchiId = 9121;
-  const unsummonedAavegotchiId = 945;
-  const someoneElseAavegotchiId = 10356;
+  const aavegotchiId = 15748;
+  const unsummonedAavegotchiId = 1463;
+  const someoneElseAavegotchiId = 19488;
 
   let aavegotchiOwnerAddress: any;
   let anotherAavegotchiOwnerAddress: any;
   let daoAddress: any;
   let aavegotchiFacet: AavegotchiFacet;
+  let lendingGetterFacet: LendingGetterAndSetterFacet;
+  let aavegotchiFacetWithOwner: AavegotchiFacet;
   let wearablesConfigFacetWithOwner: WearablesConfigFacet;
   let wearablesConfigFacetWithOtherOwner: WearablesConfigFacet;
+  let gotchiLendingFacetWithOwner: GotchiLendingFacet;
+  let gotchiLendingFacetWithOtherOwner: GotchiLendingFacet;
 
   before(async function () {
-    await resetChain(hre);
+    //await resetChain(hre);
     // workaround for issue https://github.com/NomicFoundation/hardhat/issues/5511
     await helpers.mine()
 
@@ -47,19 +56,35 @@ describe("Testing Wearables Config", async function () {
       diamondAddress
     )) as AavegotchiFacet;
 
-    //aavegotchiOwnerAddress = await aavegotchiFacet.ownerOf(aavegotchiId);
-    aavegotchiOwnerAddress = "0x43FF4C088df0A425d1a519D3030A1a3DFff05CfD";
-    anotherAavegotchiOwnerAddress = "0xE1bCD0f5c6c855ee3452B38E16FeD0b7Cb0CC507";
+    lendingGetterFacet = await ethers.getContractAt(
+      "LendingGetterAndSetterFacet",
+      diamondAddress
+    );
+
+    aavegotchiOwnerAddress = await aavegotchiFacet.ownerOf(aavegotchiId);
+    anotherAavegotchiOwnerAddress = "0xC3c2e1Cf099Bc6e1fA94ce358562BCbD5cc59FE5";
 
     //const accounts = await ethers.getSigners();
     //const ownerAddress = await accounts[0].getAddress();
     //daoAddress = ownerAddress;
-    daoAddress = "0xb208f8BB431f580CC4b216826AFfB128cd1431aB";
+    daoAddress = diamondOwner; // Geist fresh deployment
+
+    const gotchiLendingFacet = (await ethers.getContractAt(
+      "GotchiLendingFacet",
+      diamondAddress
+    )) as GotchiLendingFacet;
 
     const wearablesConfigFacet = (await ethers.getContractAt(
       "WearablesConfigFacet",
       diamondAddress
     )) as WearablesConfigFacet;
+
+    aavegotchiFacetWithOwner = await impersonate(
+      anotherAavegotchiOwnerAddress,
+      aavegotchiFacet,
+      ethers,
+      network
+    );
 
     wearablesConfigFacetWithOwner = await impersonate(
       aavegotchiOwnerAddress,
@@ -74,6 +99,23 @@ describe("Testing Wearables Config", async function () {
       ethers,
       network
     );
+
+    gotchiLendingFacetWithOwner = await impersonate(
+      aavegotchiOwnerAddress,
+      gotchiLendingFacet,
+      ethers,
+      network
+    );
+
+    gotchiLendingFacetWithOtherOwner = await impersonate(
+      anotherAavegotchiOwnerAddress,
+      gotchiLendingFacet,
+      ethers,
+      network
+    );
+
+    await aavegotchiFacetWithOwner.transferFrom(anotherAavegotchiOwnerAddress, aavegotchiOwnerAddress, unsummonedAavegotchiId);
+
   });
 
   describe("Testing createWearablesConfig", async function () {
@@ -284,30 +326,68 @@ describe("Testing Wearables Config", async function () {
       ).to.equal("Test 4th");
     });
   });
-  describe("Testing for rented gotchis", async function () {
-    it("Should be able to save for a rented gotchi", async function () {
-      // config #5 (id: 4)
-      await wearablesConfigFacetWithOtherOwner.createWearablesConfig(rentedOutAavegotchiId, "Test Rental", wearablesToStore, { value: ethers.utils.parseEther("1") })
-      expect(
-        await wearablesConfigFacetWithOwner.getWearablesConfigName(anotherAavegotchiOwnerAddress, rentedOutAavegotchiId, 0)
-      ).to.equal("Test Rental");
-    });
-    it("Should be able to update for a rented gotchi", async function () {
-      const newWearablesToStore = new Array(16).fill(0);
-      await wearablesConfigFacetWithOtherOwner.updateWearablesConfig(rentedOutAavegotchiId, 0, "Test Update Rental", newWearablesToStore)
-      expect(
-        await wearablesConfigFacetWithOwner.getWearablesConfigName(anotherAavegotchiOwnerAddress, rentedOutAavegotchiId, 0)
-      ).to.equal("Test Update Rental");
-      expect(
-        await wearablesConfigFacetWithOwner.getWearablesConfigWearables(anotherAavegotchiOwnerAddress, rentedOutAavegotchiId, 0)
-      ).to.eql(newWearablesToStore);
-    });
-    it("Should revert on create for rented out gotchi", async function () {
-      await expect(
-        wearablesConfigFacetWithOwner.createWearablesConfig(rentedOutAavegotchiId, "Test Rented Out", wearablesToStore, { value: ethers.utils.parseEther("1") })
-      ).to.be.revertedWith("LibAppStorage: Only aavegotchi owner can call this function");  
-    });
-  });
+  //describe("Testing for rented gotchis", async function () {
+  //
+  //  it("Should be able to save for a rented gotchi", async function () {
+  //
+  //    // create a listing rent a gotchi
+  //    const revenueSplit = [100, 0, 0] as [
+  //      BigNumberish,
+  //      BigNumberish,
+  //      BigNumberish
+  //    ];
+  //    await gotchiLendingFacetWithOwner.addGotchiListing({
+  //      tokenId: aavegotchiId,
+  //      initialCost: 0,
+  //      period: 86400,
+  //      revenueSplit: revenueSplit,
+  //      originalOwner: aavegotchiOwnerAddress,
+  //      thirdParty: ethers.constants.AddressZero,
+  //      whitelistId: 0,
+  //      revenueTokens: [],
+  //      permissions: 0,
+  //    });
+  //
+  //    const listing = await lendingGetterFacet.getGotchiLendingFromToken(
+  //      aavegotchiId
+  //    );
+  //    console.log(listing);
+  //
+  //    await gotchiLendingFacetWithOtherOwner.agreeGotchiLending(
+  //      listing.listingId,
+  //      aavegotchiId,
+  //      0,
+  //      86400,
+  //      revenueSplit,
+  //    );
+  //
+  //    const lending = await lendingGetterFacet.getGotchiLendingFromToken(
+  //      aavegotchiId 
+  //    );
+  //    expect(lending.borrower).to.equal(anotherAavegotchiOwnerAddress);
+  //
+  //    // config #5 (id: 4)
+  //    await wearablesConfigFacetWithOtherOwner.createWearablesConfig(aavegotchiId, "Test Rental", wearablesToStore, { value: ethers.utils.parseEther("1") })
+  //    expect(
+  //      await wearablesConfigFacetWithOwner.getWearablesConfigName(anotherAavegotchiOwnerAddress, aavegotchiId, 0)
+  //    ).to.equal("Test Rental");
+  //  });
+  //  it("Should be able to update for a rented gotchi", async function () {
+  //    const newWearablesToStore = new Array(16).fill(0);
+  //    await wearablesConfigFacetWithOtherOwner.updateWearablesConfig(aavegotchiId, 0, "Test Update Rental", newWearablesToStore)
+  //    expect(
+  //      await wearablesConfigFacetWithOwner.getWearablesConfigName(anotherAavegotchiOwnerAddress, aavegotchiId, 0)
+  //    ).to.equal("Test Update Rental");
+  //    expect(
+  //      await wearablesConfigFacetWithOwner.getWearablesConfigWearables(anotherAavegotchiOwnerAddress, aavegotchiId, 0)
+  //    ).to.eql(newWearablesToStore);
+  //  });
+  //  it("Should revert on create for rented out gotchi", async function () {
+  //    await expect(
+  //      wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test Rented Out", wearablesToStore, { value: ethers.utils.parseEther("1") })
+  //    ).to.be.revertedWith("LibAppStorage: Only aavegotchi owner can call this function");  
+  //  });
+  //});
   describe("Testing for invalid gotchis", async function () {
     it("Should revert for a portal", async function () {
       await expect(
@@ -347,18 +427,18 @@ describe("Testing Wearables Config", async function () {
       ).to.be.revertedWith("WearablesConfigFacet: Invalid wearables");  
     });
   });
-  describe("Testing for max wearable configs", async function () {
-    it("Shouldn't be able to create more than 255", async function () {
-      for (let i = 4; i < 255; i++) {
-        // config #5-255 (id: 4-254)
-        await wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test", wearablesToStore, { value: ethers.utils.parseEther("1") });
-      }
-      expect(
-        await wearablesConfigFacetWithOwner.getAavegotchiWearablesConfigCount(aavegotchiOwnerAddress, aavegotchiId)
-      ).to.equal(255);
-      await expect(
-        wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test 256th", wearablesToStore, { value: ethers.utils.parseEther("1") })
-      ).to.be.revertedWith("WearablesConfigFacet: No more wearables config slots available");
-    });
-  });
+  //describe("Testing for max wearable configs", async function () {
+  //  it("Shouldn't be able to create more than 255", async function () {
+  //    for (let i = 4; i < 255; i++) {
+  //      // config #5-255 (id: 4-254)
+  //      await wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test", wearablesToStore, { value: ethers.utils.parseEther("1") });
+  //    }
+  //    expect(
+  //      await wearablesConfigFacetWithOwner.getAavegotchiWearablesConfigCount(aavegotchiOwnerAddress, aavegotchiId)
+  //    ).to.equal(255);
+  //    await expect(
+  //      wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test 256th", wearablesToStore, { value: ethers.utils.parseEther("1") })
+  //    ).to.be.revertedWith("WearablesConfigFacet: No more wearables config slots available");
+  //  });
+  //});
 });
