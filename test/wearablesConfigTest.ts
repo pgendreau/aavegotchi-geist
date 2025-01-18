@@ -308,7 +308,7 @@ describe("Testing Wearables Config", async function () {
       ).wait();
       // check that event is emitted with the right parameters
       const event = receipt!.events!.find(
-        (event) => event.event === "WearablesConfigPaymentReceived"
+        (event) => event.event === "WearablesConfigDaoPaymentReceived"
       );
       const owner = event!.args!.owner;
       const tokenId = event!.args!.tokenId;
@@ -388,21 +388,71 @@ describe("Testing Wearables Config", async function () {
   //    ).to.be.revertedWith("LibAppStorage: Only aavegotchi owner can call this function");  
   //  });
   //});
-  describe("Testing for invalid gotchis", async function () {
-    it("Should revert for a portal", async function () {
-      await expect(
-        wearablesConfigFacetWithOwner.createWearablesConfig(unsummonedAavegotchiId, "Test Portal", wearablesToStore, { value: ethers.utils.parseEther("1") })
-      ).to.be.revertedWith("WearablesConfigFacet: Can only create wearables config for Aavegotchi");  
+  describe("Testing for other owner gotchis", async function () {
+    it("Should be able to create for unbridged gotchi", async function () {
+      await wearablesConfigFacetWithOwner.createWearablesConfig(
+        24999,
+        "Test Create for Aavegotchi not Bridged",
+        wearablesToStore,
+      );
+      expect(
+        await wearablesConfigFacetWithOwner.getWearablesConfigName(aavegotchiOwnerAddress, 24999, 0)
+      ).to.equal("Test Create for Aavegotchi not Bridged");
     });
-    it("Should revert for a gotchi not owned (create)", async function () {
-      await expect(
-        wearablesConfigFacetWithOwner.createWearablesConfig(someoneElseAavegotchiId, "Test CreateAavegotchi not owned", wearablesToStore, { value: ethers.utils.parseEther("1") })
-      ).to.be.revertedWith("LibAppStorage: Only aavegotchi owner can call this function");  
+    it("Should have to pay a fee for a gotchi not owned (create)", async function () {
+      const owner = await aavegotchiFacet.ownerOf(someoneElseAavegotchiId);
+      const ownerBalanceBefore = await ethers.provider.getBalance(owner);
+      // config #1 (id: 0)
+      await wearablesConfigFacetWithOwner.createWearablesConfig(
+        someoneElseAavegotchiId,
+        "Test CreateAavegotchi not owned",
+        wearablesToStore,
+        { value: ethers.utils.parseEther("0.1") }
+      );
+      const ownerBalanceAfter = await ethers.provider.getBalance(owner);
+      expect(ownerBalanceAfter).to.equal(ownerBalanceBefore.add(ethers.utils.parseEther("0.1")));
+    });
+    it("Should have to pay a fee in addition of the slot for a gotchi not owned (create)", async function () {
+      const owner = await aavegotchiFacet.ownerOf(someoneElseAavegotchiId);
+      const ownerBalanceBefore = await ethers.provider.getBalance(owner);
+      const daoBalanceBefore = await ethers.provider.getBalance(daoAddress);
+      // config #2 (id: 1)
+      await wearablesConfigFacetWithOwner.createWearablesConfig(
+        someoneElseAavegotchiId,
+        "Test CreateAavegotchi not owned",
+        wearablesToStore,
+        { value: ethers.utils.parseEther("0.1") }
+      );
+      // config #3 (id: 2)
+      await wearablesConfigFacetWithOwner.createWearablesConfig(
+        someoneElseAavegotchiId,
+        "Test CreateAavegotchi not owned",
+        wearablesToStore,
+        { value: ethers.utils.parseEther("0.1") }
+      );
+      // config #4 (id: 3)
+      await wearablesConfigFacetWithOwner.createWearablesConfig(
+        someoneElseAavegotchiId,
+        "Test CreateAavegotchi not owned",
+        wearablesToStore,
+        { value: ethers.utils.parseEther("1.1") }
+      );
+      const ownerBalanceAfter = await ethers.provider.getBalance(owner);
+      expect(ownerBalanceAfter).to.equal(ownerBalanceBefore.add(ethers.utils.parseEther("0.3")));
+      const daoBalanceAfter = await ethers.provider.getBalance(daoAddress);
+      expect(daoBalanceAfter).to.equal(daoBalanceBefore.add(ethers.utils.parseEther("1")));
     });
     it("Should revert for a gotchi not owned (update)", async function () {
       await expect(
         wearablesConfigFacetWithOwner.updateWearablesConfig(someoneElseAavegotchiId, 0, "", wearablesToStore)
       ).to.be.revertedWith("LibAppStorage: Only aavegotchi owner can call this function");  
+    });
+  });
+  describe("Testing for invalid gotchis", async function () {
+    it("Should revert for a portal", async function () {
+      await expect(
+        wearablesConfigFacetWithOwner.createWearablesConfig(unsummonedAavegotchiId, "Test Portal", wearablesToStore, { value: ethers.utils.parseEther("1") })
+      ).to.be.revertedWith("WearablesConfigFacet: Not allowed to create wearables config");  
     });
   });
   describe("Testing for invalid wearables", async function () {
@@ -427,18 +477,18 @@ describe("Testing Wearables Config", async function () {
       ).to.be.revertedWith("WearablesConfigFacet: Invalid wearables");  
     });
   });
-  //describe("Testing for max wearable configs", async function () {
-  //  it("Shouldn't be able to create more than 255", async function () {
-  //    for (let i = 4; i < 255; i++) {
-  //      // config #5-255 (id: 4-254)
-  //      await wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test", wearablesToStore, { value: ethers.utils.parseEther("1") });
-  //    }
-  //    expect(
-  //      await wearablesConfigFacetWithOwner.getAavegotchiWearablesConfigCount(aavegotchiOwnerAddress, aavegotchiId)
-  //    ).to.equal(255);
-  //    await expect(
-  //      wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test 256th", wearablesToStore, { value: ethers.utils.parseEther("1") })
-  //    ).to.be.revertedWith("WearablesConfigFacet: No more wearables config slots available");
-  //  });
-  //});
+  describe("Testing for max wearable configs", async function () {
+    it("Shouldn't be able to create more than 255", async function () {
+      for (let i = 4; i < 255; i++) {
+        // config #5-255 (id: 4-254)
+        await wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test", wearablesToStore, { value: ethers.utils.parseEther("1") });
+      }
+      expect(
+        await wearablesConfigFacetWithOwner.getAavegotchiWearablesConfigCount(aavegotchiOwnerAddress, aavegotchiId)
+      ).to.equal(255);
+      await expect(
+        wearablesConfigFacetWithOwner.createWearablesConfig(aavegotchiId, "Test 256th", wearablesToStore, { value: ethers.utils.parseEther("1") })
+      ).to.be.revertedWith("WearablesConfigFacet: No more wearables config slots available");
+    });
+  });
 });
