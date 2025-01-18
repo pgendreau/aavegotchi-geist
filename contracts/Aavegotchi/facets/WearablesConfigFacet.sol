@@ -8,36 +8,26 @@ import {LibWearablesConfig} from "../libraries/LibWearablesConfig.sol";
 
 contract WearablesConfigFacet is Modifiers {
 
-    /**
-     * @dev The number of free slots available for wearables configurations.
-     */
-    uint8 constant WEARABLESCONFIG_FREE_SLOTS = 3;
-    /**
-     * @dev The price to create a wearable config slot once the free slots have been reached.
-     */
-    uint256 constant WEARABLESCONFIG_SLOT_PRICE = 1000000000000000000; // 1 GHST
-    /**
-     * @dev The fee to create or update a wearable config slot for an aavegotchi not owned.
-     */
-    uint256 constant WEARABLESCONFIG_OWNER_FEE = 100000000000000000; // 0.1 GHST
+    // constants
+    uint256 private constant MAX_UINT8 = 2**8 - 1;
+    uint8 public constant WEARABLESCONFIG_FREE_SLOTS = 3;
+    uint256 public constant WEARABLESCONFIG_SLOT_PRICE = 1000000000000000000; // 1 GHST
+    uint256 public constant WEARABLESCONFIG_OWNER_FEE = 100000000000000000; // 0.1 GHST
 
-    uint256 constant MAX_UINT8 = 2**8 - 1;
-
+    // events
     event WearablesConfigCreated(address indexed owner, uint256 indexed tokenId, uint8 indexed wearablesConfigId, uint16[EQUIPPED_WEARABLE_SLOTS] wearables, uint256 value);
     event WearablesConfigUpdated(address indexed owner, uint256 indexed tokenId, uint8 indexed wearablesConfigId, uint16[EQUIPPED_WEARABLE_SLOTS] wearables);
     event WearablesConfigDaoPaymentReceived(address indexed owner, uint256 indexed tokenId, uint8 indexed wearablesConfigId, uint256 value);
     event WearablesConfigOwnerPaymentReceived(address indexed sender, address indexed owner, uint256 indexed tokenId, uint8 wearablesConfigId, uint256 value);
 
-    /**
-     * @notice Creates and stores a new wearables configuration (max 255 per Aavegotchi per owner).
-     * @notice First three slots are free, the rest are paid.
-     * @notice To create a wearables config for someone else aavegotchi there is a fee
-     * @notice We support wearables config creation for unbridged gotchis (config owner is set to sender)
-     * @param _tokenId The ID of the aavegotchi to create the wearables configuration for.
-     * @param _name The name of the wearables configuration.
-     * @param _wearablesToStore The wearables to store for this wearables configuration.
-     * @return wearablesConfigId The ID of the newly created wearables configuration.
-     */
+    /// @notice Creates and stores a new wearables configuration (max 255 per Aavegotchi per owner).
+    /// @notice First three slots are free, the rest are paid.
+    /// @notice To create a wearables config for someone else aavegotchi there is a fee
+    /// @notice We support wearables config creation for unbridged gotchis (config owner is set to sender)
+    /// @param _tokenId The ID of the aavegotchi to create the wearables configuration for.
+    /// @param _name The name of the wearables configuration.
+    /// @param _wearablesToStore The wearables to store for this wearables configuration.
+    /// @return wearablesConfigId The ID of the newly created wearables configuration.
     function createWearablesConfig(
         uint256 _tokenId,
         string calldata _name,

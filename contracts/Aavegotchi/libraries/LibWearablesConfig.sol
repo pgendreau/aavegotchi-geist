@@ -33,7 +33,6 @@ library LibWearablesConfig {
         nextWearablesConfigId = s.ownerGotchiSlotsUsed[_owner][_tokenId];
     }
 
-    
     /// @notice Checks if a wearables config exists for a gotchi given an owner
     /// @param _owner The owner of the gotchi
     /// @param _tokenId The tokenId of the gotchi
