@@ -50,6 +50,13 @@ contract WearablesConfigFacet is Modifiers {
         bool notowner;
         uint256 fee;
          
+        // owner is null address only if the gotchi has not been bridged
+        // because of the check in _checkAavegotchiOrUnbridged
+        if (owner == address(0)) {
+          // unbridged gotchi so set the owner to the sender
+          owner = sender;
+        }
+
         // get the next available slot
         wearablesConfigId = LibWearablesConfig._getNextWearablesConfigId(owner, _tokenId);
         // solidity will throw if slots used overflows
@@ -63,14 +70,9 @@ contract WearablesConfigFacet is Modifiers {
 
         // if the sender is not the owner and the gotchi has been bridged
         // then they need to pay a fee to the owner
-        // owner is null address only if the gotchi has not been bridged
-        // because of the check above
-        if (sender != owner && owner != address(0)) {
+        if (sender != owner) {
             notowner = true;
             fee += WEARABLESCONFIG_OWNER_FEE;
-        } else {
-          // unbridged gotchi so set the owner to the sender
-          owner = sender;
         }
 
         if (fee > 0) {
@@ -113,13 +115,34 @@ contract WearablesConfigFacet is Modifiers {
         string calldata _name,
         uint16[EQUIPPED_WEARABLE_SLOTS] calldata _wearablesToStore
     )
-        external
-        onlyAavegotchiOwner(_tokenId)
+        external payable
     {
-        address owner = LibMeta.msgSender();
+        address sender = LibMeta.msgSender();
+        address owner = s.aavegotchis[_tokenId].owner;
 
+        // check that update of this wearables config is allowed (only aavegotchi or unbridged)
+        require(LibWearablesConfig._checkAavegotchiOrUnbridged(_tokenId), "WearablesConfigFacet: Not allowed to update wearables config");
+        // check that wearables are valid and for the right slots
         require(LibWearablesConfig._checkValidWearables(_wearablesToStore), "WearablesConfigFacet: Invalid wearables");
+
+        // owner is null address only if the gotchi has not been bridged
+        // because of the check in _checkAavegotchiOrUnbridged
+        if (owner == address(0)) {
+          // unbridged gotchi so set the owner to the sender
+          owner = sender;
+        }
+
+        // make sure we are updating an existing wearables config
         require(LibWearablesConfig._wearablesConfigExists(owner, _tokenId, _wearablesConfigId), "WearablesConfigFacet: invalid id, WearablesConfig not found");
+
+        // if the sender is not the owner and the gotchi has been bridged
+        // then they need to pay a fee to the owner
+        if (sender != owner) {
+            (bool success, ) = payable(owner).call{value: WEARABLESCONFIG_OWNER_FEE}("");
+            require(success, "WearablesConfigFacet: Failed to send GHST to owner");
+
+            emit WearablesConfigOwnerPaymentReceived(sender, owner, _tokenId, _wearablesConfigId, WEARABLESCONFIG_OWNER_FEE);
+        }
 
         // skip if name is empty
         if (bytes(_name).length > 0) {

@@ -540,8 +540,9 @@ describe("Testing Wearables Config", async function () {
   //    ).to.be.revertedWith("LibAppStorage: Only aavegotchi owner can call this function");
   //  });
   //});
-  describe("Testing for other owner gotchis", async function () {
-    it("Should be able to create for unbridged gotchi", async function () {
+  describe("Testing for unbridged gotchis", async function () {
+    it("Should be able to create for unbridged gotchi for free", async function () {
+      // unbridged config #1 (id: 0)
       await wearablesConfigFacetWithOwner.createWearablesConfig(
         24999,
         "Test Create for Aavegotchi not Bridged",
@@ -555,13 +556,63 @@ describe("Testing Wearables Config", async function () {
         ),
       ).to.equal("Test Create for Aavegotchi not Bridged");
     });
+    it("Should have to pay for the 4th slot even for unbridged gotchis", async function () {
+      const daoBalanceBefore = await ethers.provider.getBalance(daoAddress);
+      // unbridged config #2 (id: 1)
+      await wearablesConfigFacetWithOwner.createWearablesConfig(
+        24999,
+        "Test Create for Aavegotchi not Bridged",
+        wearablesToStore,
+      );
+      // unbridged config #3 (id: 2)
+      await wearablesConfigFacetWithOwner.createWearablesConfig(
+        24999,
+        "Test Create for Aavegotchi not Bridged",
+        wearablesToStore,
+      );
+      // unbridged config #4 (id: 3)
+      await wearablesConfigFacetWithOwner.createWearablesConfig(
+        24999,
+        "Test Create 4th for Aavegotchi not Bridged",
+        wearablesToStore,
+        { value: ethers.utils.parseEther("1") },
+      );
+      expect(
+        await wearablesConfigFacetWithOwner.getWearablesConfigName(
+          aavegotchiOwnerAddress,
+          24999,
+          3,
+        ),
+      ).to.equal("Test Create 4th for Aavegotchi not Bridged");
+      const daoBalanceAfter = await ethers.provider.getBalance(daoAddress);
+      expect(daoBalanceAfter).to.equal(
+        daoBalanceBefore.add(ethers.utils.parseEther("1")),
+      );
+    });
+    it("Should be able to update for unbridged gotchi for free", async function () {
+      await wearablesConfigFacetWithOwner.updateWearablesConfig(
+        24999,
+        0,
+        "Test Update for Aavegotchi not Bridged",
+        wearablesToStore,
+      );
+      expect(
+        await wearablesConfigFacetWithOwner.getWearablesConfigName(
+          aavegotchiOwnerAddress,
+          24999,
+          0,
+        ),
+      ).to.equal("Test Update for Aavegotchi not Bridged");
+    });
+  });
+  describe("Testing for other owners gotchis", async function () {
     it("Should have to pay a fee for a gotchi not owned (create)", async function () {
       const owner = await aavegotchiFacet.ownerOf(someoneElseAavegotchiId);
       const ownerBalanceBefore = await ethers.provider.getBalance(owner);
-      // config #1 (id: 0)
+      // alt config #1 (id: 0)
       await wearablesConfigFacetWithOwner.createWearablesConfig(
         someoneElseAavegotchiId,
-        "Test CreateAavegotchi not owned",
+        "Test Create for Aavegotchi not Owned",
         wearablesToStore,
         { value: ethers.utils.parseEther("0.1") },
       );
@@ -569,29 +620,36 @@ describe("Testing Wearables Config", async function () {
       expect(ownerBalanceAfter).to.equal(
         ownerBalanceBefore.add(ethers.utils.parseEther("0.1")),
       );
+      expect(
+        await wearablesConfigFacetWithOwner.getWearablesConfigName(
+          owner,
+          someoneElseAavegotchiId,
+          0,
+        ),
+      ).to.equal("Test Create for Aavegotchi not Owned");
     });
     it("Should have to pay a fee in addition of the slot for a gotchi not owned (create)", async function () {
       const owner = await aavegotchiFacet.ownerOf(someoneElseAavegotchiId);
       const ownerBalanceBefore = await ethers.provider.getBalance(owner);
       const daoBalanceBefore = await ethers.provider.getBalance(daoAddress);
-      // config #2 (id: 1)
+      // alt config #2 (id: 1)
       await wearablesConfigFacetWithOwner.createWearablesConfig(
         someoneElseAavegotchiId,
-        "Test CreateAavegotchi not owned",
+        "Test Create for Aavegotchi not Owned",
         wearablesToStore,
         { value: ethers.utils.parseEther("0.1") },
       );
-      // config #3 (id: 2)
+      // alt config #3 (id: 2)
       await wearablesConfigFacetWithOwner.createWearablesConfig(
         someoneElseAavegotchiId,
-        "Test CreateAavegotchi not owned",
+        "Test Create for Aavegotchi not Owned",
         wearablesToStore,
         { value: ethers.utils.parseEther("0.1") },
       );
-      // config #4 (id: 3)
+      // alt config #4 (id: 3)
       await wearablesConfigFacetWithOwner.createWearablesConfig(
         someoneElseAavegotchiId,
-        "Test CreateAavegotchi not owned",
+        "Test Create for Aavegotchi not Owned",
         wearablesToStore,
         { value: ethers.utils.parseEther("1.1") },
       );
@@ -604,16 +662,19 @@ describe("Testing Wearables Config", async function () {
         daoBalanceBefore.add(ethers.utils.parseEther("1")),
       );
     });
-    it("Should revert for a gotchi not owned (update)", async function () {
-      await expect(
-        wearablesConfigFacetWithOwner.updateWearablesConfig(
-          someoneElseAavegotchiId,
-          0,
-          "",
-          wearablesToStore,
-        ),
-      ).to.be.revertedWith(
-        "LibAppStorage: Only aavegotchi owner can call this function",
+    it("Should require a fee for a gotchi not owned (update)", async function () {
+      const owner = await aavegotchiFacet.ownerOf(someoneElseAavegotchiId);
+      const ownerBalanceBefore = await ethers.provider.getBalance(owner);
+      await wearablesConfigFacetWithOwner.updateWearablesConfig(
+        someoneElseAavegotchiId,
+        0,
+        "",
+        wearablesToStore,
+        { value: ethers.utils.parseEther("0.1") },
+      );
+      const ownerBalanceAfter = await ethers.provider.getBalance(owner);
+      expect(ownerBalanceAfter).to.equal(
+        ownerBalanceBefore.add(ethers.utils.parseEther("0.1")),
       );
     });
   });
