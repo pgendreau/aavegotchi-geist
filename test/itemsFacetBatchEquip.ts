@@ -87,11 +87,13 @@ describe("Testing Batch Equip Wearables", async function () {
       diamondAddress,
     )) as ItemsFacet;
 
+    // get owners of gotchis
     aavegotchiOwnerAddress = await aavegotchiFacet.ownerOf(aavegotchiId);
     anotherAavegotchiOwnerAddress = await aavegotchiFacet.ownerOf(
       anotherOwnerAavegotchiId,
     );
 
+    // impersonate signers
     let aavegotchiFacetWithOtherSigner: AavegotchiFacet = await impersonate(
       anotherAavegotchiOwnerAddress,
       aavegotchiFacet,
@@ -104,7 +106,38 @@ describe("Testing Batch Equip Wearables", async function () {
       ethers,
       network,
     );
+    wearablesFacetWithOwner = await impersonate(
+      aavegotchiOwnerAddress,
+      wearablesFacet,
+      ethers,
+      network,
+    );
+    itemsFacetWithOwner = await impersonate(
+      aavegotchiOwnerAddress,
+      itemsFacet,
+      ethers,
+      network,
+    );
+    itemsFacetWithOtherOwner = await impersonate(
+      anotherAavegotchiOwnerAddress,
+      itemsFacet,
+      ethers,
+      network,
+    );
+    aavegotchiFacetWithOwner = await impersonate(
+      aavegotchiOwnerAddress,
+      aavegotchiFacet,
+      ethers,
+      network,
+    );
+    itemsRolesRegistryFacetWithOwner = await impersonate(
+      aavegotchiOwnerAddress,
+      itemsRolesRegistryFacet,
+      ethers,
+      network,
+    );
 
+    // transfer gotchi and wearable for tests
     await aavegotchiFacetWithOtherSigner.transferFrom(
       anotherAavegotchiOwnerAddress,
       aavegotchiOwnerAddress,
@@ -118,46 +151,12 @@ describe("Testing Batch Equip Wearables", async function () {
       "0x",
     );
 
+    // get gotchis of owner
     gotchisOfOwner = await aavegotchiFacet.tokenIdsOfOwner(
       aavegotchiOwnerAddress,
     );
-    console.log("gotchisOfOwner", gotchisOfOwner);
 
-    wearablesFacetWithOwner = await impersonate(
-      aavegotchiOwnerAddress,
-      wearablesFacet,
-      ethers,
-      network,
-    );
-
-    itemsFacetWithOwner = await impersonate(
-      aavegotchiOwnerAddress,
-      itemsFacet,
-      ethers,
-      network,
-    );
-
-    itemsFacetWithOtherOwner = await impersonate(
-      anotherAavegotchiOwnerAddress,
-      itemsFacet,
-      ethers,
-      network,
-    );
-
-    aavegotchiFacetWithOwner = await impersonate(
-      aavegotchiOwnerAddress,
-      aavegotchiFacet,
-      ethers,
-      network,
-    );
-
-    itemsRolesRegistryFacetWithOwner = await impersonate(
-      aavegotchiOwnerAddress,
-      itemsRolesRegistryFacet,
-      ethers,
-      network,
-    );
-
+    // equip transfered wearable on transeferd gotchi
     await itemsFacetWithOwner.equipWearables(gotchisOfOwner[1], otherWearables);
   });
 
@@ -180,7 +179,7 @@ describe("Testing Batch Equip Wearables", async function () {
         emptyWearables,
       );
 
-      // reequip for next test
+      // reset for next test
       await itemsFacetWithOwner.equipWearables(gotchisOfOwner[0], wearables);
       await itemsFacetWithOwner.equipWearables(
         gotchisOfOwner[1],
@@ -204,7 +203,7 @@ describe("Testing Batch Equip Wearables", async function () {
       );
       expect(await getWearables(gotchisOfOwner[1])).to.deep.equal(wearables);
 
-      // reequip for next test
+      // reequip for next test (inversed)
       await itemsFacetWithOwner.equipWearables(
         gotchisOfOwner[0],
         otherWearables,
@@ -213,10 +212,8 @@ describe("Testing Batch Equip Wearables", async function () {
     it("Should be able to completely flip wearables between two gotchis", async function () {
       const firstGotchiId = gotchisOfOwner[0];
       const secondGotchiId = gotchisOfOwner[1];
-      const firstGotchiWearables =
-        await itemsFacetWithOwner.equippedWearables(firstGotchiId);
-      const secondGotchiWearables =
-        await itemsFacetWithOwner.equippedWearables(secondGotchiId);
+      const firstGotchiWearables = await getWearables(firstGotchiId);
+      const secondGotchiWearables = await getWearables(secondGotchiId);
       await itemsFacetWithOwner.batchEquipWearables(
         [firstGotchiId, secondGotchiId, firstGotchiId, secondGotchiId],
         [
@@ -233,10 +230,13 @@ describe("Testing Batch Equip Wearables", async function () {
         firstGotchiWearables,
       );
 
+      // unequip to free wearables for next test
       await itemsFacetWithOwner.equipWearables(
         gotchisOfOwner[0],
         emptyWearables,
       );
+
+      // retransfer to other owner for next test
       await aavegotchiFacetWithOwner.transferFrom(
         aavegotchiOwnerAddress,
         anotherAavegotchiOwnerAddress,
@@ -248,6 +248,7 @@ describe("Testing Batch Equip Wearables", async function () {
       let GrantRoleData: GrantRoleData;
       let depositIdsCounter = 0;
 
+      // rent a wearable
       CommitmentCreated = buildCommitment({
         grantor: aavegotchiOwnerAddress,
         tokenAddress: wearablesDiamondAddress,
@@ -266,7 +267,6 @@ describe("Testing Batch Equip Wearables", async function () {
             )
         ).toString(),
       );
-      console.log(depositIdsCounter);
 
       GrantRoleData = await buildGrantRole({
         depositId: depositIdsCounter,
@@ -293,6 +293,7 @@ describe("Testing Batch Equip Wearables", async function () {
         GrantRoleData.data,
       );
 
+      // unequip and reequip with rental
       await itemsFacetWithOtherOwner.batchEquipDelegatedWearables(
         [anotherOwnerAavegotchiId, anotherOwnerAavegotchiId],
         [emptyWearables, wearablesWithRentals],
