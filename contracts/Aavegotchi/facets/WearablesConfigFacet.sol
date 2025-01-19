@@ -50,10 +50,8 @@ contract WearablesConfigFacet is Modifiers {
         bool notowner;
         uint256 fee;
          
-        // owner is null address only if the gotchi has not been bridged
-        // because of the check in _checkAavegotchiOrUnbridged
         if (owner == address(0)) {
-          // unbridged gotchi so set the owner to the sender
+          // set the owner to the sender for unbridged gotchis
           owner = sender;
         }
 
@@ -125,10 +123,8 @@ contract WearablesConfigFacet is Modifiers {
         // check that wearables are valid and for the right slots
         require(LibWearablesConfig._checkValidWearables(_wearablesToStore), "WearablesConfigFacet: Invalid wearables");
 
-        // owner is null address only if the gotchi has not been bridged
-        // because of the check in _checkAavegotchiOrUnbridged
         if (owner == address(0)) {
-          // unbridged gotchi so set the owner to the sender
+          // set the owner to the sender for unbridged gotchis
           owner = sender;
         }
 

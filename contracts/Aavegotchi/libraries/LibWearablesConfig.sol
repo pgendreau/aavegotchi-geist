@@ -14,15 +14,20 @@ library LibWearablesConfig {
     function _checkAavegotchiOrUnbridged(uint256 _tokenId) internal view returns (bool result) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         if (s.aavegotchis[_tokenId].status == LibAavegotchi.STATUS_AAVEGOTCHI) {
-            // sacrificed or bridged back aavegotchis do not have an owner set
-            require(s.aavegotchis[_tokenId].owner != address(0), "LibWearablesConfig: Invalid owner for aavegotchi");
             result = true;
         // Unbridged aavegotchis do not have a owner or a haunt set
-        } else if (s.aavegotchis[_tokenId].hauntId == 0) {
+        } else if (s.aavegotchis[_tokenId].hauntId == 0 && s.aavegotchis[_tokenId].owner == address(0)) {
+            // Only allow unbridged aavegotchis up to the current supply
+            uint256 maxSupply;
+            for (uint256 i = 1; i <= s.currentHauntId; i++) {
+                maxSupply += s.haunts[i].hauntMaxSize;
+            }
+            require(_tokenId < maxSupply, "LibWearablesConfig: Invalid tokenId for unbridged aavegotchi");
+
             result = true;
         }
     }
-      
+
     /// @notice Returns the next wearables config id for that gotchi given that owner
     /// @param _owner The owner of the gotchi
     /// @param _tokenId The tokenId of the gotchi

@@ -478,6 +478,9 @@ describe("Testing Wearables Config", async function () {
       ).to.equal("Test 4th");
     });
   });
+  //
+  // Note: Disabled until the realm diamond is set on Geist as it prevents to accept a lending
+  //
   //describe("Testing for rented gotchis", async function () {
   //
   //  it("Should be able to save for a rented gotchi", async function () {
@@ -685,10 +688,20 @@ describe("Testing Wearables Config", async function () {
           unsummonedAavegotchiId,
           "Test Portal",
           wearablesToStore,
-          { value: ethers.utils.parseEther("1") },
         ),
       ).to.be.revertedWith(
         "WearablesConfigFacet: Not allowed to create wearables config",
+      );
+    });
+    it("Should revert for an invalid id (over max supply)", async function () {
+      await expect(
+        wearablesConfigFacetWithOwner.createWearablesConfig(
+          25000,
+          "Test Invalid Id",
+          wearablesToStore,
+        ),
+      ).to.be.revertedWith(
+        "LibWearablesConfig: Invalid tokenId for unbridged aavegotchi",
       );
     });
   });
