@@ -115,30 +115,24 @@ contract WearablesConfigFacet is Modifiers {
     )
         external payable
     {
-        address sender = LibMeta.msgSender();
-        address owner = s.aavegotchis[_tokenId].owner;
-
         // check that update of this wearables config is allowed (only aavegotchi or unbridged)
         require(LibWearablesConfig._checkAavegotchiOrUnbridged(_tokenId), "WearablesConfigFacet: Not allowed to update wearables config");
         // check that wearables are valid and for the right slots
         require(LibWearablesConfig._checkValidWearables(_wearablesToStore), "WearablesConfigFacet: Invalid wearables");
 
+        address sender = LibMeta.msgSender();
+        address owner = s.aavegotchis[_tokenId].owner;
+
         if (owner == address(0)) {
-          // set the owner to the sender for unbridged gotchis
+          // save the wearables config under the sender for unbridged aavegotchis
           owner = sender;
+        } else {
+          // make sure that the sender is also the owner of this aavegotchi
+          require(sender == owner, "WearablesConfigFacet: Only the owner can update wearables config");
         }
 
         // make sure we are updating an existing wearables config
         require(LibWearablesConfig._wearablesConfigExists(owner, _tokenId, _wearablesConfigId), "WearablesConfigFacet: invalid id, WearablesConfig not found");
-
-        // if the sender is not the owner and the gotchi has been bridged
-        // then they need to pay a fee to the owner
-        if (sender != owner) {
-            (bool success, ) = payable(owner).call{value: WEARABLESCONFIG_OWNER_FEE}("");
-            require(success, "WearablesConfigFacet: Failed to send GHST to owner");
-
-            emit WearablesConfigOwnerPaymentReceived(sender, owner, _tokenId, _wearablesConfigId, WEARABLESCONFIG_OWNER_FEE);
-        }
 
         // skip if name is empty
         if (bytes(_name).length > 0) {

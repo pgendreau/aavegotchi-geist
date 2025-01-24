@@ -665,19 +665,16 @@ describe("Testing Wearables Config", async function () {
         daoBalanceBefore.add(ethers.utils.parseEther("1")),
       );
     });
-    it("Should require a fee for a gotchi not owned (update)", async function () {
-      const owner = await aavegotchiFacet.ownerOf(someoneElseAavegotchiId);
-      const ownerBalanceBefore = await ethers.provider.getBalance(owner);
-      await wearablesConfigFacetWithOwner.updateWearablesConfig(
-        someoneElseAavegotchiId,
-        0,
-        "",
-        wearablesToStore,
-        { value: ethers.utils.parseEther("0.1") },
-      );
-      const ownerBalanceAfter = await ethers.provider.getBalance(owner);
-      expect(ownerBalanceAfter).to.equal(
-        ownerBalanceBefore.add(ethers.utils.parseEther("0.1")),
+    it("Should revert for a gotchi not owned (update)", async function () {
+      await expect(
+        wearablesConfigFacetWithOwner.updateWearablesConfig(
+          someoneElseAavegotchiId,
+          0,
+          "",
+          wearablesToStore,
+        ),
+      ).to.be.revertedWith(
+        "WearablesConfigFacet: Only the owner can update wearables config",
       );
     });
   });
