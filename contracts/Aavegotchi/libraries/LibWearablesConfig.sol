@@ -32,7 +32,7 @@ library LibWearablesConfig {
     /// @param _owner The owner of the gotchi
     /// @param _tokenId The tokenId of the gotchi
     /// @return nextWearablesConfigId The next free wearables config id
-    function _getNextWearablesConfigId(address _owner, uint256 _tokenId) internal view returns (uint8 nextWearablesConfigId) {
+    function _getNextWearablesConfigId(address _owner, uint256 _tokenId) internal view returns (uint16 nextWearablesConfigId) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         // slots start at 0 so slotsUsed is always the next config id
         nextWearablesConfigId = s.ownerGotchiSlotsUsed[_owner][_tokenId];
@@ -43,7 +43,7 @@ library LibWearablesConfig {
     /// @param _tokenId The tokenId of the gotchi
     /// @param _wearablesConfigId The wearables config id
     /// @return exists True if the wearables config exists false otherwise
-    function _wearablesConfigExists(address _owner, uint256 _tokenId, uint8 _wearablesConfigId) internal view returns (bool exists) {
+    function _wearablesConfigExists(address _owner, uint256 _tokenId, uint16 _wearablesConfigId) internal view returns (bool exists) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         // slots start at 0 so slots used should always be greater by 1 than the last config id
         exists = (s.ownerGotchiSlotsUsed[_owner][_tokenId] > _wearablesConfigId);

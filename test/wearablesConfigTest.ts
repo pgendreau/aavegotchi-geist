@@ -747,33 +747,4 @@ describe("Testing Wearables Config", async function () {
       ).to.be.revertedWith("WearablesConfigFacet: Invalid wearables");
     });
   });
-  describe("Testing for max wearable configs", async function () {
-    it("Shouldn't be able to create more than 255", async function () {
-      for (let i = 4; i < 255; i++) {
-        // config #5-255 (id: 4-254)
-        await wearablesConfigFacetWithOwner.createWearablesConfig(
-          aavegotchiId,
-          "Test",
-          wearablesToStore,
-          { value: ethers.utils.parseEther("1") },
-        );
-      }
-      expect(
-        await wearablesConfigFacetWithOwner.getAavegotchiWearablesConfigCount(
-          aavegotchiOwnerAddress,
-          aavegotchiId,
-        ),
-      ).to.equal(255);
-      await expect(
-        wearablesConfigFacetWithOwner.createWearablesConfig(
-          aavegotchiId,
-          "Test 256th",
-          wearablesToStore,
-          { value: ethers.utils.parseEther("1") },
-        ),
-      ).to.be.revertedWith(
-        "WearablesConfigFacet: No more wearables config slots available",
-      );
-    });
-  });
 });

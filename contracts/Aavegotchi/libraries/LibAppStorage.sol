@@ -395,7 +395,7 @@ struct AppStorage {
     // gotchi => owner => wearable configs
     mapping(uint256 => mapping(address => WearablesConfig[])) gotchiWearableConfigs;
     // owner => gotchi => slots used
-    mapping(address => mapping (uint256 => uint8)) ownerGotchiSlotsUsed;
+    mapping(address => mapping (uint256 => uint16)) ownerGotchiSlotsUsed;
 }
 
 library LibAppStorage {
